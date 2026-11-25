@@ -1,0 +1,16 @@
+activity_id,description,quantity,unit,scope,scope3_category,scope2_method,factor_id,method,period_start,period_end,site,supplier
+S1-001,HQ boiler natural gas,12000,therm,1,,,EPA-STAT-NATGAS,average_data,2025-01-01,2025-12-31,HQ,
+S1-002,Backup generator diesel,80,GJ,1,,,EPA-STAT-DIESEL,average_data,2025-01-01,2025-12-31,HQ,
+S1-003,Fleet vans diesel,8500,gal,1,,,EPA-MOB-DIESEL-CO2,average_data,2025-01-01,2025-12-31,Fleet,
+S1-004,Office AC top-up R-410A,3.5,kg,1,,,REFRIG-R410A,average_data,2025-01-01,2025-12-31,HQ,
+S2-001,HQ electricity,850,MWh,2,,location_based,DEMO-GRID-ELEC-LB,average_data,2025-01-01,2025-12-31,HQ,
+S2-002,HQ electricity - covered by GOs,500,MWh,2,,market_based,SCOPE2-EAC-RENEWABLE,supplier_specific,2025-01-01,2025-12-31,HQ,GreenPower Co
+S2-003,HQ electricity - residual,350,MWh,2,,market_based,DEMO-RESIDUAL-MIX-MB,average_data,2025-01-01,2025-12-31,HQ,
+S3-001,Consulting fees,420000,USD,3,1,,DEMO-SPEND-PROF-SERVICES,spend_based,2025-01-01,2025-12-31,,Big Four LLP
+S3-002,Laptops refresh,180000,USD,3,2,,DEMO-SPEND-IT-EQUIPMENT,spend_based,2025-01-01,2025-12-31,,TechVendor Inc
+S3-003,Office supplies,25000,USD,3,1,,DEMO-SPEND-OFFICE-SUPPLIES,spend_based,2025-01-01,2025-12-31,,Stationery Ltd
+S3-004,Inbound road freight,410000,tkm,3,4,,DEMO-ROAD-FREIGHT,average_data,2025-01-01,2025-12-31,,Haulage Co
+S3-005,Business flights short-haul,310000,pkm,3,6,,DEMO-AIR-SHORT-HAUL,average_data,2025-01-01,2025-12-31,,
+S3-006,Business flights long-haul,1200000,pkm,3,6,,DEMO-AIR-LONG-HAUL,average_data,2025-01-01,2025-12-31,,
+S3-007,Hotel nights,640,night,3,6,,DEMO-HOTEL-NIGHT,average_data,2025-01-01,2025-12-31,,
+S3-008,Office waste to landfill,18,t,3,5,,DEMO-WASTE-LANDFILL,average_data,2025-01-01,2025-12-31,HQ,
