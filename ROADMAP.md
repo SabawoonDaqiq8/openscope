@@ -36,9 +36,12 @@
 - USEEIO v1.3 supply chain factors (1,016 NAICS-6 commodities), per gas, reconciled with EPA
 - Complete AR5/AR6 GWP table for the gases in the dataset
 
-## v0.6 — Decarbonization pathways
+## v0.6 — Decarbonisation pathways ✅
 - Abatement levers, marginal abatement cost curve, Monte Carlo uncertainty
-- Target trajectories (absolute contraction) vs. baseline
+- Science-based target trajectories per Scope 1+2 and Scope 3
+
+## v0.6.x
+- Grid decarbonisation path for Scope 2; cost uncertainty; saved scenarios on the server
 
 ## Later datasets
 - US EPA GHG Emission Factors Hub (full), residual-mix factors (AIB, Green-e)

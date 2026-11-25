@@ -177,3 +177,21 @@ def test_public_demo_mode_preloads_data(tmp_path: Path) -> None:
     # restarting against the same database does not duplicate the demo
     c2 = TestClient(create_app(settings))
     assert len(c2.get("/api/inventories").json()) == 1
+
+
+def test_pathway_endpoint_on_demo(client: TestClient) -> None:
+    demo = client.post("/api/demo").json()
+    scenario = client.get("/api/pathway/demo-scenario").json()
+    assert scenario["currency"] == "GBP" and len(scenario["levers"]) == 6
+    scenario["simulations"] = 200
+    r = client.post(f"/api/inventories/{demo['inventory_id']}/pathway", json=scenario)
+    assert r.status_code == 200, r.text
+    out = r.json()
+    assert out["years"][0] == 2025 and out["years"][-1] == 2035
+    assert out["scope3"]["gap_tco2e"] > 0  # the demo plan misses its Scope 3 target
+    assert out["levers"][0]["mac"] < 0
+
+    bad = dict(scenario, target_year=2020)
+    assert (
+        client.post(f"/api/inventories/{demo['inventory_id']}/pathway", json=bad).status_code == 422
+    )

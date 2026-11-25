@@ -19,7 +19,7 @@ describe('App shell', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('openscope');
     const links = Array.from(el.querySelectorAll('nav a')).map((a) => a.textContent?.trim());
-    expect(links).toEqual(['Overview', 'Scope 3 review', 'Emission factors', 'Upload']);
+    expect(links).toEqual(['Overview', 'Scope 3 review', 'Pathways', 'Emission factors', 'Upload']);
   });
 
   it('shows the public-demo banner only when the server is a public demo', async () => {

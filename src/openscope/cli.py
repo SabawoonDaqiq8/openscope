@@ -162,6 +162,43 @@ def cmd_import_useeio(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_pathway(args: argparse.Namespace) -> int:
+    import dataclasses
+
+    from openscope.pathway import Scenario, run
+
+    calc = Calculator(_registry(args.factors, args.no_bundled, args.dataset), args.gwp, None)
+    acts = read_activities(args.activities)
+    batch = calc.calculate_many(acts)
+    with open(args.scenario, encoding="utf-8") as fh:
+        scenario = Scenario.model_validate_json(fh.read())
+    result = run(Inventory(batch.results), scenario, {a.activity_id: a.description for a in acts})
+    if args.json:
+        print(dumps_json(dataclasses.asdict(result)))
+        return 0
+    cur = result.currency
+    print(f"\n{scenario.name}  ({scenario.base_year} → {scenario.target_year})")
+    print("─" * 78)
+    print(f"  Base year emissions        {result.base_tco2e:>10,.1f} tCO2e")
+    print(f"  {scenario.target_year} business as usual    {result.bau[-1]:>10,.1f}")
+    print(
+        f"  {scenario.target_year} with levers          {result.pathway[-1]:>10,.1f}"
+        f"   (P10–P90 {result.p10[-1]:,.1f}–{result.p90[-1]:,.1f})"
+    )
+    for label, g in (("Scope 1+2", result.scope12), ("Scope 3", result.scope3)):
+        status = "on track" if g.gap_tco2e <= 0 else f"short by {g.gap_tco2e:,.1f} t"
+        print(
+            f"  {label:<10} target {g.target_tco2e:>8,.1f}  pathway {g.pathway_tco2e:>8,.1f}"
+            f"  {status:<20} P(meet) {g.probability_meets_target:.0%}"
+        )
+    print("\n  Marginal abatement cost curve (merit order)")
+    print(f"  {'#':<3}{'Lever':<44}{'tCO2e/yr':>10}{cur + '/tCO2e':>14}")
+    for lv in result.levers:
+        mac = "–" if lv.mac is None else f"{lv.mac:,.0f}"
+        print(f"  {lv.merit_rank:<3}{lv.name[:42]:<44}{lv.abatement_tco2e:>10,.1f}{mac:>14}")
+    return 0
+
+
 def cmd_classify(args: argparse.Namespace) -> int:
     from openscope import classify as cl
 
@@ -265,6 +302,15 @@ def build_parser() -> argparse.ArgumentParser:
     i.add_argument("--out", required=True)
     i.add_argument("--year", type=int, help="Factor year (auto-detected if omitted)")
     i.set_defaults(func=cmd_import_desnz)
+
+    pw = sub.add_parser(
+        "pathway", parents=[common], help="Simulate a decarbonisation pathway for an inventory"
+    )
+    pw.add_argument("activities")
+    pw.add_argument("--scenario", required=True, help="Scenario JSON (see examples/)")
+    pw.add_argument("--gwp", default="AR6", choices=["AR5", "AR6"])
+    pw.add_argument("--json", action="store_true")
+    pw.set_defaults(func=cmd_pathway)
 
     u = sub.add_parser("import-useeio", help="Convert EPA supply chain factors to factor CSV")
     u.add_argument("by_ghg", help="SupplyChainGHGEmissionFactors_*_NAICS_byGHG_*.csv")

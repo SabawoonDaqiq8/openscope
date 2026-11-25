@@ -647,6 +647,156 @@
         "title": "InventoryOut",
         "type": "object"
       },
+      "Lever": {
+        "properties": {
+          "annual_opex_change": {
+            "default": 0.0,
+            "title": "Annual Opex Change",
+            "type": "number"
+          },
+          "assumptions": {
+            "default": "",
+            "title": "Assumptions",
+            "type": "string"
+          },
+          "capex": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Capex",
+            "type": "number"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lifetime_years": {
+            "default": 10,
+            "minimum": 1.0,
+            "title": "Lifetime Years",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "ramp_years": {
+            "default": 1,
+            "minimum": 1.0,
+            "title": "Ramp Years",
+            "type": "integer"
+          },
+          "reduction": {
+            "description": "Share of matched emissions removed",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Reduction",
+            "type": "number"
+          },
+          "reduction_high": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reduction High"
+          },
+          "reduction_low": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reduction Low"
+          },
+          "selector": {
+            "$ref": "#/components/schemas/LeverSelector"
+          },
+          "start_year": {
+            "title": "Start Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "selector",
+          "reduction",
+          "start_year"
+        ],
+        "title": "Lever",
+        "type": "object"
+      },
+      "LeverSelector": {
+        "description": "Which inventory lines a lever acts on (all given conditions must match).",
+        "properties": {
+          "activity_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activity Ids"
+          },
+          "scope3_categories": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope3 Categories"
+          },
+          "scopes": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scopes"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Case-insensitive match on activity id, description or factor",
+            "title": "Text"
+          }
+        },
+        "title": "LeverSelector",
+        "type": "object"
+      },
       "LineError": {
         "properties": {
           "activity_id": {
@@ -857,6 +1007,204 @@
           "tco2e"
         ],
         "title": "MethodTotal",
+        "type": "object"
+      },
+      "PathwayGroupOut": {
+        "properties": {
+          "base_tco2e": {
+            "title": "Base Tco2E",
+            "type": "number"
+          },
+          "gap_tco2e": {
+            "title": "Gap Tco2E",
+            "type": "number"
+          },
+          "pathway_tco2e": {
+            "title": "Pathway Tco2E",
+            "type": "number"
+          },
+          "probability_meets_target": {
+            "title": "Probability Meets Target",
+            "type": "number"
+          },
+          "target_tco2e": {
+            "title": "Target Tco2E",
+            "type": "number"
+          }
+        },
+        "required": [
+          "base_tco2e",
+          "target_tco2e",
+          "pathway_tco2e",
+          "gap_tco2e",
+          "probability_meets_target"
+        ],
+        "title": "PathwayGroupOut",
+        "type": "object"
+      },
+      "PathwayLeverOut": {
+        "properties": {
+          "abatement_by_target_year_tco2e": {
+            "title": "Abatement By Target Year Tco2E",
+            "type": "number"
+          },
+          "abatement_tco2e": {
+            "title": "Abatement Tco2E",
+            "type": "number"
+          },
+          "addressed_tco2e": {
+            "title": "Addressed Tco2E",
+            "type": "number"
+          },
+          "annualised_cost": {
+            "title": "Annualised Cost",
+            "type": "number"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "mac": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mac"
+          },
+          "matched_lines": {
+            "title": "Matched Lines",
+            "type": "integer"
+          },
+          "merit_rank": {
+            "title": "Merit Rank",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "matched_lines",
+          "addressed_tco2e",
+          "abatement_tco2e",
+          "annualised_cost",
+          "mac",
+          "merit_rank",
+          "abatement_by_target_year_tco2e"
+        ],
+        "title": "PathwayLeverOut",
+        "type": "object"
+      },
+      "PathwayOut": {
+        "properties": {
+          "base_tco2e": {
+            "title": "Base Tco2E",
+            "type": "number"
+          },
+          "bau": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Bau",
+            "type": "array"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "levers": {
+            "items": {
+              "$ref": "#/components/schemas/PathwayLeverOut"
+            },
+            "title": "Levers",
+            "type": "array"
+          },
+          "p10": {
+            "items": {
+              "type": "number"
+            },
+            "title": "P10",
+            "type": "array"
+          },
+          "p50": {
+            "items": {
+              "type": "number"
+            },
+            "title": "P50",
+            "type": "array"
+          },
+          "p90": {
+            "items": {
+              "type": "number"
+            },
+            "title": "P90",
+            "type": "array"
+          },
+          "pathway": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Pathway",
+            "type": "array"
+          },
+          "probability_meets_target": {
+            "title": "Probability Meets Target",
+            "type": "number"
+          },
+          "scope12": {
+            "$ref": "#/components/schemas/PathwayGroupOut"
+          },
+          "scope3": {
+            "$ref": "#/components/schemas/PathwayGroupOut"
+          },
+          "target": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Target",
+            "type": "array"
+          },
+          "target_year_gap_tco2e": {
+            "title": "Target Year Gap Tco2E",
+            "type": "number"
+          },
+          "target_year_tco2e": {
+            "title": "Target Year Tco2E",
+            "type": "number"
+          },
+          "years": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "years",
+          "bau",
+          "pathway",
+          "p10",
+          "p50",
+          "p90",
+          "target",
+          "levers",
+          "base_tco2e",
+          "target_year_tco2e",
+          "target_year_gap_tco2e",
+          "probability_meets_target",
+          "scope12",
+          "scope3",
+          "currency"
+        ],
+        "title": "PathwayOut",
         "type": "object"
       },
       "QualityBucket": {
@@ -1102,6 +1450,88 @@
         "title": "RunOut",
         "type": "object"
       },
+      "Scenario": {
+        "properties": {
+          "base_year": {
+            "title": "Base Year",
+            "type": "integer"
+          },
+          "bau_growth": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Annual BAU growth per scope, keys '1', '2', '3'",
+            "title": "Bau Growth",
+            "type": "object"
+          },
+          "bau_growth_uncertainty": {
+            "default": 0.01,
+            "minimum": 0.0,
+            "title": "Bau Growth Uncertainty",
+            "type": "number"
+          },
+          "currency": {
+            "default": "USD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "discount_rate": {
+            "default": 0.08,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Discount Rate",
+            "type": "number"
+          },
+          "levers": {
+            "items": {
+              "$ref": "#/components/schemas/Lever"
+            },
+            "title": "Levers",
+            "type": "array"
+          },
+          "name": {
+            "default": "Scenario",
+            "title": "Name",
+            "type": "string"
+          },
+          "seed": {
+            "default": 42,
+            "title": "Seed",
+            "type": "integer"
+          },
+          "simulations": {
+            "default": 1000,
+            "maximum": 20000.0,
+            "minimum": 10.0,
+            "title": "Simulations",
+            "type": "integer"
+          },
+          "target_rate_scope12": {
+            "default": 0.042,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Target Rate Scope12",
+            "type": "number"
+          },
+          "target_rate_scope3": {
+            "default": 0.025,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Target Rate Scope3",
+            "type": "number"
+          },
+          "target_year": {
+            "title": "Target Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "base_year",
+          "target_year"
+        ],
+        "title": "Scenario",
+        "type": "object"
+      },
       "Totals": {
         "properties": {
           "data_quality_score": {
@@ -1218,7 +1648,7 @@
   "info": {
     "description": "Open-source, auditable carbon accounting: GHG Protocol Scope 1, 2 and 3.",
     "title": "openscope API",
-    "version": "0.5.0"
+    "version": "0.6.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -1898,6 +2328,58 @@
         ]
       }
     },
+    "/api/inventories/{inventory_id}/pathway": {
+      "post": {
+        "operationId": "inventory_pathway_api_inventories__inventory_id__pathway_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "inventory_id",
+            "required": true,
+            "schema": {
+              "title": "Inventory Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Scenario"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PathwayOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Inventory Pathway",
+        "tags": [
+          "pathways"
+        ]
+      }
+    },
     "/api/meta": {
       "get": {
         "operationId": "meta_api_meta_get",
@@ -1916,6 +2398,27 @@
         "summary": "Meta",
         "tags": [
           "meta"
+        ]
+      }
+    },
+    "/api/pathway/demo-scenario": {
+      "get": {
+        "operationId": "demo_scenario_api_pathway_demo_scenario_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Scenario"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Demo Scenario",
+        "tags": [
+          "pathways"
         ]
       }
     }

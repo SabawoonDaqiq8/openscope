@@ -5,6 +5,7 @@ No calculation or classification logic lives here; it only orchestrates library 
 
 from __future__ import annotations
 
+import dataclasses
 import tempfile
 from collections import defaultdict
 from collections.abc import Sequence
@@ -31,6 +32,9 @@ from openscope.classify.memory import MemoryEntry, SupplierMemory
 from openscope.engine import BatchResult
 from openscope.errors import OpenScopeError
 from openscope.io import read_activities
+from openscope.models import EmissionResult
+from openscope.pathway import Scenario
+from openscope.pathway import run as run_pathway
 
 
 class NotFound(OpenScopeError):
@@ -461,6 +465,19 @@ class Service:
         return schemas.ExportOut(
             inventory_id=inv.id, activities=len(activities), pending_lines=pending
         )
+
+    # -- pathways --------------------------------------------------------------------------------
+    def pathway(self, row: db.Inventory, scenario: Scenario) -> schemas.PathwayOut:
+        results = [EmissionResult.model_validate(r.result) for r in row.lines]
+        descriptions = {r.activity_id: r.activity.get("description") or "" for r in row.lines}
+        result = run_pathway(Inventory(results), scenario, descriptions)
+        return schemas.PathwayOut.model_validate(dataclasses.asdict(result))
+
+    def demo_scenario(self) -> Scenario:
+        path = self._demo_file("pathway_demo_scenario.json")
+        if path is None:
+            raise NotFound("No demo scenario on this server")
+        return Scenario.model_validate_json(path.read_text(encoding="utf-8"))
 
     # -- demo -----------------------------------------------------------------------------------
     def _demo_file(self, name: str) -> Path | None:

@@ -84,6 +84,7 @@ export class App {
   protected readonly nav = [
     { path: '/overview', label: 'Overview' },
     { path: '/review', label: 'Scope 3 review' },
+    { path: '/pathways', label: 'Pathways' },
     { path: '/factors', label: 'Emission factors' },
     { path: '/upload', label: 'Upload' },
   ];

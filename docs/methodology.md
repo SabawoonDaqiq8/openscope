@@ -95,3 +95,30 @@ line: `supplier_specific`, `hybrid`, `average_data`, `spend_based` or `estimated
 year (capped at 5). The inventory score is the emissions-weighted mean over headline results.
 This is a simplified version of the GHG Protocol data-quality indicators and the PCAF score. It is
 meant to rank where better data would matter most, not to replace a formal assessment.
+
+## Decarbonisation pathways
+
+Implemented in `openscope.pathway` (see the module docstring for the full method).
+
+* **Baseline**: the headline inventory lines (market-based Scope 2), projected with a
+  business-as-usual growth rate per scope.
+* **Levers** match inventory lines by scope, Scope 3 category, activity id or keyword. In year
+  *y* a lever removes `reduction × ramp(y)` of the remaining emissions of each matched line.
+  The ramp is linear from `start_year` over `ramp_years`.
+* **Merit order and interactions**: levers are ranked by stand-alone cost per tonne and applied
+  in that order to what remains, so overlapping levers do not double count. The reported
+  abatement is the marginal, interaction-adjusted value at full implementation and base-year
+  activity.
+* **Cost**: `capex × CRF(r, lifetime) + annual opex change`, with
+  `CRF = r(1+r)^n / ((1+r)^n − 1)`. MAC = annualised cost / annual abatement.
+* **Targets**: linear absolute contraction from the base year, separately for Scope 1+2 and
+  Scope 3. The defaults are the SBTi near-term minimum annual linear reduction rates (4.2 %/yr,
+  1.5 °C-aligned, for Scope 1+2; 2.5 %/yr, well-below 2 °C, for Scope 3). They are
+  parameters: check them against the SBTi criteria version that applies to you.
+* **Uncertainty**: Monte Carlo (seeded) over lever reduction (triangular low/mode/high) and BAU
+  growth (uniform ± a set range). The model reports P10/P50/P90 per year and the share of runs
+  at or below each target in the target year.
+
+Limitations: levers are independent multiplicative cuts (no physical coupling, e.g. heat pumps
+adding Scope 2 must be netted into the reduction); there is no grid decarbonisation path and
+no cost uncertainty yet.

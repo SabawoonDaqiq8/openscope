@@ -28,6 +28,16 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/review').then((m) => m.ReviewPage),
   },
   {
+    path: 'pathways',
+    title: 'Pathways · openscope',
+    loadComponent: () => import('./pages/pathways').then((m) => m.PathwaysPage),
+  },
+  {
+    path: 'pathways/:id',
+    title: 'Pathways · openscope',
+    loadComponent: () => import('./pages/pathways').then((m) => m.PathwaysPage),
+  },
+  {
     path: 'factors',
     title: 'Emission factors · openscope',
     loadComponent: () => import('./pages/factors').then((m) => m.FactorsPage),

@@ -30,6 +30,7 @@ from openscope.api import db, schemas
 from openscope.api.service import NotFound, Service
 from openscope.api.settings import Settings
 from openscope.errors import OpenScopeError
+from openscope.pathway import Scenario
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
@@ -140,6 +141,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def delete_inventory(inventory_id: int, session: SessionDep) -> None:
         session.delete(service.get_inventory(session, inventory_id))
         session.commit()
+
+    # -- pathways --------------------------------------------------------------------------
+    @api.post("/inventories/{inventory_id}/pathway", tags=["pathways"])
+    def inventory_pathway(
+        inventory_id: int, scenario: Scenario, session: SessionDep
+    ) -> schemas.PathwayOut:
+        return service.pathway(service.get_inventory(session, inventory_id), scenario)
+
+    @api.get("/pathway/demo-scenario", tags=["pathways"])
+    def demo_scenario() -> Scenario:
+        return service.demo_scenario()
 
     # -- classification -------------------------------------------------------------------
     @api.get("/classification-runs", tags=["classification"])

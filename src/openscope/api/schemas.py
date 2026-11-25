@@ -198,3 +198,41 @@ class ExportOut(BaseModel):
 class DemoOut(BaseModel):
     inventory_id: int
     run_id: int
+
+
+class PathwayLeverOut(BaseModel):
+    id: str
+    name: str
+    matched_lines: int
+    addressed_tco2e: float
+    abatement_tco2e: float
+    annualised_cost: float
+    mac: float | None
+    merit_rank: int
+    abatement_by_target_year_tco2e: float
+
+
+class PathwayGroupOut(BaseModel):
+    base_tco2e: float
+    target_tco2e: float
+    pathway_tco2e: float
+    gap_tco2e: float
+    probability_meets_target: float
+
+
+class PathwayOut(BaseModel):
+    years: list[int]
+    bau: list[float]
+    pathway: list[float]
+    p10: list[float]
+    p50: list[float]
+    p90: list[float]
+    target: list[float]
+    levers: list[PathwayLeverOut]
+    base_tco2e: float
+    target_year_tco2e: float
+    target_year_gap_tco2e: float
+    probability_meets_target: float
+    scope12: PathwayGroupOut
+    scope3: PathwayGroupOut
+    currency: str

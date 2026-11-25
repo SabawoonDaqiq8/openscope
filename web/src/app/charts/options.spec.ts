@@ -1,5 +1,5 @@
 import type { ChartTokens } from '../core/theme.service';
-import { orderedColumns, rankedBars, scopeComposition } from './options';
+import { macc, orderedColumns, rankedBars, scopeComposition, trajectory } from './options';
 
 const tokens: ChartTokens = {
   surface: '#ffffff',
@@ -55,5 +55,44 @@ describe('chart options', () => {
       tokens,
     ) as AnyOpt;
     expect(opt.xAxis.data).toEqual(['1', '2', '3']);
+  });
+});
+
+describe('pathway charts', () => {
+  it('trajectory: band is stacked P10 + (P90 - P10); target dashed; BAU neutral', () => {
+    const opt = trajectory(
+      {
+        years: [2025, 2026],
+        bau: [100, 102],
+        pathway: [100, 80],
+        p10: [100, 70],
+        p90: [100, 90],
+        target: [100, 95],
+      },
+      tokens,
+    ) as AnyOpt;
+    const byName = Object.fromEntries(opt.series.map((s: AnyOpt) => [s.name, s]));
+    expect(byName['P10–P90'].data).toEqual([0, 20]);
+    expect(byName['band-base'].stack).toBe(byName['P10–P90'].stack);
+    expect(byName['Target'].lineStyle.type).toEqual([6, 4]);
+    expect(byName['Business as usual'].lineStyle.color).toBe(tokens.textSecondary);
+    expect(opt.yAxis.name).toBeUndefined(); // unit lives in the subtitle
+  });
+
+  it('macc: bars laid out cumulatively in the given order', () => {
+    const opt = macc(
+      [
+        { rank: 1, name: 'A', abatement: 10, mac: -50 },
+        { rank: 2, name: 'B', abatement: 30, mac: 120 },
+      ],
+      tokens,
+      'GBP',
+    ) as AnyOpt;
+    expect(opt.series[0].data).toEqual([
+      [0, 10, -50, 1, 'A', 10],
+      [10, 40, 120, 2, 'B', 30],
+    ]);
+    expect(opt.xAxis.max).toBe(40);
+    expect(opt.yAxis.name).toBe('GBP / tCO₂e');
   });
 });

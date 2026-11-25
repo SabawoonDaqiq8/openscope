@@ -211,6 +211,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/inventories/{inventory_id}/pathway": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Inventory Pathway */
+        post: operations["inventory_pathway_api_inventories__inventory_id__pathway_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/meta": {
         parameters: {
             query?: never;
@@ -220,6 +237,23 @@ export interface paths {
         };
         /** Meta */
         get: operations["meta_api_meta_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/pathway/demo-scenario": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Demo Scenario */
+        get: operations["demo_scenario_api_pathway_demo_scenario_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -463,6 +497,67 @@ export interface components {
             /** Total Tco2E */
             total_tco2e: number;
         };
+        /** Lever */
+        Lever: {
+            /**
+             * Annual Opex Change
+             * @default 0
+             */
+            annual_opex_change: number;
+            /**
+             * Assumptions
+             * @default
+             */
+            assumptions: string;
+            /**
+             * Capex
+             * @default 0
+             */
+            capex: number;
+            /** Id */
+            id: string;
+            /**
+             * Lifetime Years
+             * @default 10
+             */
+            lifetime_years: number;
+            /** Name */
+            name: string;
+            /**
+             * Ramp Years
+             * @default 1
+             */
+            ramp_years: number;
+            /**
+             * Reduction
+             * @description Share of matched emissions removed
+             */
+            reduction: number;
+            /** Reduction High */
+            reduction_high?: number | null;
+            /** Reduction Low */
+            reduction_low?: number | null;
+            selector: components["schemas"]["LeverSelector"];
+            /** Start Year */
+            start_year: number;
+        };
+        /**
+         * LeverSelector
+         * @description Which inventory lines a lever acts on (all given conditions must match).
+         */
+        LeverSelector: {
+            /** Activity Ids */
+            activity_ids?: string[] | null;
+            /** Scope3 Categories */
+            scope3_categories?: number[] | null;
+            /** Scopes */
+            scopes?: number[] | null;
+            /**
+             * Text
+             * @description Case-insensitive match on activity id, description or factor
+             */
+            text?: string | null;
+        };
         /** LineError */
         LineError: {
             /** Activity Id */
@@ -530,6 +625,71 @@ export interface components {
             method: string;
             /** Tco2E */
             tco2e: number;
+        };
+        /** PathwayGroupOut */
+        PathwayGroupOut: {
+            /** Base Tco2E */
+            base_tco2e: number;
+            /** Gap Tco2E */
+            gap_tco2e: number;
+            /** Pathway Tco2E */
+            pathway_tco2e: number;
+            /** Probability Meets Target */
+            probability_meets_target: number;
+            /** Target Tco2E */
+            target_tco2e: number;
+        };
+        /** PathwayLeverOut */
+        PathwayLeverOut: {
+            /** Abatement By Target Year Tco2E */
+            abatement_by_target_year_tco2e: number;
+            /** Abatement Tco2E */
+            abatement_tco2e: number;
+            /** Addressed Tco2E */
+            addressed_tco2e: number;
+            /** Annualised Cost */
+            annualised_cost: number;
+            /** Id */
+            id: string;
+            /** Mac */
+            mac: number | null;
+            /** Matched Lines */
+            matched_lines: number;
+            /** Merit Rank */
+            merit_rank: number;
+            /** Name */
+            name: string;
+        };
+        /** PathwayOut */
+        PathwayOut: {
+            /** Base Tco2E */
+            base_tco2e: number;
+            /** Bau */
+            bau: number[];
+            /** Currency */
+            currency: string;
+            /** Levers */
+            levers: components["schemas"]["PathwayLeverOut"][];
+            /** P10 */
+            p10: number[];
+            /** P50 */
+            p50: number[];
+            /** P90 */
+            p90: number[];
+            /** Pathway */
+            pathway: number[];
+            /** Probability Meets Target */
+            probability_meets_target: number;
+            scope12: components["schemas"]["PathwayGroupOut"];
+            scope3: components["schemas"]["PathwayGroupOut"];
+            /** Target */
+            target: number[];
+            /** Target Year Gap Tco2E */
+            target_year_gap_tco2e: number;
+            /** Target Year Tco2E */
+            target_year_tco2e: number;
+            /** Years */
+            years: number[];
         };
         /** QualityBucket */
         QualityBucket: {
@@ -621,6 +781,62 @@ export interface components {
             threshold: number;
             /** Used Llm */
             used_llm: boolean;
+        };
+        /** Scenario */
+        Scenario: {
+            /** Base Year */
+            base_year: number;
+            /**
+             * Bau Growth
+             * @description Annual BAU growth per scope, keys '1', '2', '3'
+             */
+            bau_growth?: {
+                [key: string]: number;
+            };
+            /**
+             * Bau Growth Uncertainty
+             * @default 0.01
+             */
+            bau_growth_uncertainty: number;
+            /**
+             * Currency
+             * @default USD
+             */
+            currency: string;
+            /**
+             * Discount Rate
+             * @default 0.08
+             */
+            discount_rate: number;
+            /** Levers */
+            levers?: components["schemas"]["Lever"][];
+            /**
+             * Name
+             * @default Scenario
+             */
+            name: string;
+            /**
+             * Seed
+             * @default 42
+             */
+            seed: number;
+            /**
+             * Simulations
+             * @default 1000
+             */
+            simulations: number;
+            /**
+             * Target Rate Scope12
+             * @default 0.042
+             */
+            target_rate_scope12: number;
+            /**
+             * Target Rate Scope3
+             * @default 0.025
+             */
+            target_rate_scope3: number;
+            /** Target Year */
+            target_year: number;
         };
         /** Totals */
         Totals: {
@@ -1109,6 +1325,41 @@ export interface operations {
             };
         };
     };
+    inventory_pathway_api_inventories__inventory_id__pathway_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inventory_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Scenario"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PathwayOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     meta_api_meta_get: {
         parameters: {
             query?: never;
@@ -1125,6 +1376,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Meta"];
+                };
+            };
+        };
+    };
+    demo_scenario_api_pathway_demo_scenario_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Scenario"];
                 };
             };
         };

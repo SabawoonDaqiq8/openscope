@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.6.0
+### Added
+- `openscope.pathway`: decarbonisation pathway simulator with abatement levers (selectors,
+  ramps, capex/opex/lifetime), merit-ordered marginal abatement cost curve without double
+  counting, science-based target trajectories set separately for Scope 1+2 and Scope 3, and
+  Monte Carlo uncertainty (P10/P50/P90, probability of meeting each target)
+- `openscope pathway` CLI command; demo scenario `examples/pathway_demo_scenario.json`
+  (illustrative assumptions)
+- API: `POST /api/inventories/{id}/pathway`, `GET /api/pathway/demo-scenario`
+- Dashboard **Pathways** page: scenario and lever editor (saved per inventory in the browser),
+  target status tiles, trajectory chart with uncertainty band, MACC, lever table
+
 ## 0.5.0
 ### Added
 - Bundled `useeio-1.3` dataset: US EPA Supply Chain GHG Emission Factors v1.3.0 (1,016 NAICS-6

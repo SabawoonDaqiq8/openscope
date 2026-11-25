@@ -18,6 +18,9 @@ export type ReviewIn = Schemas['ReviewIn'];
 export type Audit = Schemas['AuditOut'];
 export type ExportOut = Schemas['ExportOut'];
 export type DemoOut = Schemas['DemoOut'];
+export type Scenario = Schemas['Scenario'];
+export type Lever = Schemas['Lever'];
+export type PathwayOut = Schemas['PathwayOut'];
 
 function params(values: Record<string, string | number | boolean | null | undefined>) {
   let p = new HttpParams();
@@ -118,6 +121,14 @@ export class ApiService {
     return this.http.post<ExportOut>(`${this.base}/classification-runs/${runId}/export`, {
       name,
     });
+  }
+
+  pathway(inventoryId: number, scenario: Scenario): Observable<PathwayOut> {
+    return this.http.post<PathwayOut>(`${this.base}/inventories/${inventoryId}/pathway`, scenario);
+  }
+
+  demoScenario(): Observable<Scenario> {
+    return this.http.get<Scenario>(`${this.base}/pathway/demo-scenario`);
   }
 
   demo(): Observable<DemoOut> {

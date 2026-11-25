@@ -11,9 +11,10 @@
 Scope 1, 2 and 3 emissions, where every number can be traced back to its activity data,
 emission factor, unit conversion and GWP.
 
-> Status: **alpha (v0.5)**: core engine, official factor datasets (**UK DESNZ 2025**, 2,672
+> Status: **alpha (v0.6)**: core engine, official factor datasets (**UK DESNZ 2025**, 2,672
 > factors, and **US EPA supply chain factors v1.3**, 1,016 spend-based factors), an
-> **AI-assisted Scope 3 spend classifier** with human review and an audit trail, and a **web
+> **AI-assisted Scope 3 spend classifier** with human review and an audit trail, a
+> **decarbonisation pathway simulator** (MACC, science-based targets, Monte Carlo), and a **web
 > dashboard** (FastAPI + Angular).
 
 ![openscope dashboard](docs/images/dashboard-overview-light.png)
@@ -32,9 +33,34 @@ docker run -p 8000:8000 -v openscope-data:/data openscope
 | | |
 |---|---|
 | **Overview**: scope totals, Scope 2 dual reporting, Scope 3 by category, hotspots, data quality, disclosure warnings | **Line explorer**: every calculated line with its step-by-step audit trail |
-| **Scope 3 review**: accept / override / exclude classified ledger lines; every decision is audit-logged and teaches supplier memory | **Emission factors**: search all 2,700+ factors with source and GWP basis |
+| **Scope 3 review**: accept / override / exclude classified ledger lines; every decision is audit-logged and teaches supplier memory | **Pathways**: abatement levers, MACC, science-based targets and Monte Carlo uncertainty |
+| **Emission factors**: search all 3,700+ factors with source and GWP basis | **Upload**: activity data or a ledger export |
 
 ![Scope 3 review queue](docs/images/dashboard-review.png)
+
+### Decarbonisation pathways
+
+![Pathway simulator](docs/images/dashboard-pathways.png)
+
+Model abatement levers (heat pumps, fleet electrification, renewable electricity, supplier
+engagement…) against your inventory:
+
+* **Marginal abatement cost curve**: levers in merit order, cost per tCO2e from capex
+  annualised with the capital recovery factor plus opex. Overlapping levers never abate the
+  same tonne twice.
+* **Science-based targets**: linear absolute contraction, set separately for Scope 1+2 and
+  Scope 3 (SBTi near-term minimums by default: 4.2 %/yr and 2.5 %/yr), because a plan can hit
+  the combined total while missing one of them.
+* **Uncertainty**: Monte Carlo over lever effectiveness (triangular low/likely/high) and BAU
+  growth, giving P10–P90 bands and the probability of meeting each target.
+
+```bash
+openscope pathway examples/uk_demo_activities.csv --scenario examples/pathway_demo_scenario.json \
+    --dataset desnz-2025 --gwp AR5
+```
+
+The demo scenario's costs and reductions are **illustrative assumptions** and are flagged in the
+UI.
 
 **Stack:** FastAPI · SQLAlchemy (SQLite, Postgres-ready) · Angular 22 (standalone components,
 signals, zoneless) · Tailwind CSS · Apache ECharts · TypeScript types generated from the
