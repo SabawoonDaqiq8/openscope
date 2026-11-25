@@ -8,6 +8,7 @@ openscope factors [--search TEXT] [--factors my_factors.csv]
 from __future__ import annotations
 
 import argparse
+import csv
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -18,6 +19,7 @@ from openscope.errors import OpenScopeError
 from openscope.factors import FactorRegistry
 from openscope.inventory import Inventory
 from openscope.io import dumps_json, read_activities, write_results
+from openscope.models import EmissionFactor
 from openscope.money import FXTable, PriceIndex, SpendNormaliser
 
 
@@ -133,6 +135,80 @@ def cmd_import_desnz(args: argparse.Namespace) -> int:
     return 0
 
 
+def _spend_factors(reg: FactorRegistry) -> list[EmissionFactor]:
+    from openscope import units
+
+    return [f for f in reg if units.get_unit(f.activity_unit).dimension.startswith("currency:")]
+
+
+def cmd_classify(args: argparse.Namespace) -> int:
+    from openscope import classify as cl
+
+    reg = _registry(args.factors, args.no_bundled, args.dataset)
+    lines = cl.read_ledger(args.ledger, default_currency=args.currency)
+    rules = cl.RuleSet() if args.no_default_rules else cl.RuleSet.default()
+    for path in args.rules or []:
+        rules = rules + cl.RuleSet.from_csv(path)
+    memory = cl.SupplierMemory.load(args.memory) if args.memory else None
+    llm = None
+    if args.llm:
+        llm = cl.LLMClassifier.from_env(
+            _spend_factors(reg), model=args.model, effort=args.effort, batch_size=args.batch_size
+        )
+    classified = cl.classify_ledger(
+        lines, rules, memory, llm, cl.PipelineConfig(threshold=args.threshold)
+    )
+    cl.write_review_csv(classified, args.out)
+
+    s = cl.summarise(classified)
+    print(f"Classified {s['lines']} ledger lines -> {args.out}")
+    print(f"  by status: {s['by_status']}")
+    print(f"  by source: {s['by_source']}")
+    print(f"  spend share needing review: {s['spend_share_needing_review']:.1%}")
+    if llm is not None:
+        u = llm.usage
+        print(
+            f"  model {llm.model}: {u.requests} requests, {u.input_tokens:,} input "
+            f"(+{u.cache_read_input_tokens:,} cached) / {u.output_tokens:,} output tokens"
+        )
+        for f in u.failed_batches:
+            print(f"  ! batch left for review: {f}", file=sys.stderr)
+    if args.labels:
+        report = cl.evaluate(classified, cl.read_labels(args.labels))
+        print(dumps_json(report.as_dict()))
+    return 0
+
+
+def cmd_review_apply(args: argparse.Namespace) -> int:
+    from openscope import classify as cl
+    from openscope.io import ACTIVITY_COLUMNS
+
+    reg = _registry(args.factors, args.no_bundled, args.dataset)
+    memory = cl.SupplierMemory.load(args.memory) if args.memory else None
+    outcome = cl.apply_review(
+        cl.read_review_csv(args.review),
+        args.reviewer,
+        known_factor_ids={f.factor_id for f in reg},
+        memory=memory,
+    )
+    if args.audit_log:
+        cl.append_audit_log(outcome.audit_entries, args.audit_log)
+    if memory is not None and args.memory:
+        memory.save(args.memory)
+    acts = cl.to_activities(outcome.lines)
+    with open(args.activities_out, "w", newline="", encoding="utf-8") as fh:
+        w = csv.DictWriter(fh, fieldnames=ACTIVITY_COLUMNS, lineterminator="\n")
+        w.writeheader()
+        for a in acts:
+            row = a.model_dump(mode="json")
+            w.writerow({k: "" if row.get(k) is None else row[k] for k in ACTIVITY_COLUMNS})
+    print(f"Applied {len(outcome.audit_entries)} review decisions by {args.reviewer}")
+    print(f"Wrote {len(acts)} spend-based activities to {args.activities_out}")
+    if outcome.still_pending:
+        print(f"  {len(outcome.still_pending)} lines still need review (not exported)")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="openscope", description="Open-source carbon accounting")
     p.add_argument("--version", action="version", version=f"openscope {__version__}")
@@ -168,6 +244,33 @@ def build_parser() -> argparse.ArgumentParser:
     i.add_argument("--out", required=True)
     i.add_argument("--year", type=int, help="Factor year (auto-detected if omitted)")
     i.set_defaults(func=cmd_import_desnz)
+
+    k = sub.add_parser(
+        "classify", parents=[common], help="Classify a ledger export into Scope 3 categories"
+    )
+    k.add_argument("ledger")
+    k.add_argument("--out", required=True, help="Review CSV to write")
+    k.add_argument("--rules", action="append", help="Extra rules CSV (repeatable)")
+    k.add_argument("--no-default-rules", action="store_true")
+    k.add_argument("--memory", help="Supplier memory JSON (read)")
+    k.add_argument("--llm", action="store_true", help="Use Claude for lines rules can't decide")
+    k.add_argument("--model", default="claude-opus-5-5")
+    k.add_argument("--effort", default="low", choices=["low", "medium", "high", "xhigh", "max"])
+    k.add_argument("--batch-size", type=int, default=25)
+    k.add_argument("--threshold", type=float, default=0.85, help="Auto-accept confidence")
+    k.add_argument("--currency", help="Currency when the ledger has no currency column")
+    k.add_argument("--labels", help="Labelled CSV: print an evaluation report")
+    k.set_defaults(func=cmd_classify)
+
+    r = sub.add_parser(
+        "review-apply", parents=[common], help="Apply reviewer decisions from a review CSV"
+    )
+    r.add_argument("review")
+    r.add_argument("--reviewer", required=True)
+    r.add_argument("--activities-out", required=True)
+    r.add_argument("--audit-log", help="Append-only JSONL audit log")
+    r.add_argument("--memory", help="Supplier memory JSON (read and updated)")
+    r.set_defaults(func=cmd_review_apply)
     return p
 
 

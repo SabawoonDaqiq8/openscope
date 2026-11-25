@@ -1,0 +1,16 @@
+# ILLUSTRATIVE spend-based factors for the classification demo only (round placeholder values).
+# Replace with USEEIO / EXIOBASE / your own EEIO dataset before any real reporting.
+factor_id,name,activity_unit,co2e_kg,scope3_category,region,year,source,status,notes
+DEMO-SPEND-SOFTWARE,Software and cloud services - spend-based (illustrative),USD,0.08,1,DEMO,2022,openscope demo data,illustrative,
+DEMO-SPEND-LEGAL-AUDIT,Legal and accounting services - spend-based (illustrative),USD,0.07,1,DEMO,2022,openscope demo data,illustrative,
+DEMO-SPEND-MARKETING,Advertising and marketing services - spend-based (illustrative),USD,0.12,1,DEMO,2022,openscope demo data,illustrative,
+DEMO-SPEND-CLEANING,Building cleaning and facilities services - spend-based (illustrative),USD,0.15,1,DEMO,2022,openscope demo data,illustrative,
+DEMO-SPEND-CATERING,Food service and events - spend-based (illustrative),USD,0.4,1,DEMO,2022,openscope demo data,illustrative,
+DEMO-SPEND-PACKAGING,Paper and plastic packaging - spend-based (illustrative),USD,0.6,1,DEMO,2022,openscope demo data,illustrative,
+DEMO-SPEND-FURNITURE,Office furniture - spend-based (illustrative),USD,0.35,1,DEMO,2022,openscope demo data,illustrative,
+DEMO-SPEND-AIR-TRAVEL,Air transportation - spend-based (illustrative),USD,0.9,6,DEMO,2022,openscope demo data,illustrative,
+DEMO-SPEND-HOTEL,Hotels and lodging - spend-based (illustrative),USD,0.25,6,DEMO,2022,openscope demo data,illustrative,
+DEMO-SPEND-GROUND-TRAVEL,Taxi rail and ground passenger transport - spend-based (illustrative),USD,0.3,6,DEMO,2022,openscope demo data,illustrative,
+DEMO-SPEND-FREIGHT,Truck freight and courier - spend-based (illustrative),USD,0.7,4,DEMO,2022,openscope demo data,illustrative,
+DEMO-SPEND-WASTE,Waste management services - spend-based (illustrative),USD,0.9,5,DEMO,2022,openscope demo data,illustrative,
+DEMO-SPEND-REAL-ESTATE,Real estate leasing - spend-based (illustrative),USD,0.05,8,DEMO,2022,openscope demo data,illustrative,

@@ -11,9 +11,10 @@
 Scope 1, 2 and 3 emissions, where every number can be traced back to its activity data,
 emission factor, unit conversion and GWP.
 
-> Status: **alpha (v0.2)**: core engine plus the full **UK Government (DESNZ) 2025**
-> conversion-factor set (2,672 factors). An AI-assisted Scope 3 spend classifier, a REST API
-> and a web dashboard are on the [roadmap](ROADMAP.md).
+> Status: **alpha (v0.3)**: core engine, the full **UK Government (DESNZ) 2025**
+> conversion-factor set (2,672 factors), and an **AI-assisted Scope 3 spend classifier** with
+> human review and an audit trail. A REST API and web dashboard are on the
+> [roadmap](ROADMAP.md).
 
 ## Why
 
@@ -94,6 +95,22 @@ print(result.co2e_t, result.trace)
 batch = calc.calculate_many(activities)  # errors are collected, not raised
 print(Inventory(batch.results).summary())
 ```
+
+### AI-assisted Scope 3 from your purchase ledger
+
+```bash
+pip install -e ".[ai]"            # Claude classifier (needs ANTHROPIC_API_KEY)
+openscope classify ledger.csv --out review.csv --llm --factors my_spend_factors.csv
+# ... review.csv in a spreadsheet: accept / override / exclude ...
+openscope review-apply review.csv --reviewer "Your Name" \
+    --activities-out spend.csv --audit-log audit.jsonl --memory suppliers.json
+openscope calculate spend.csv --factors my_spend_factors.csv
+```
+
+The pipeline runs rules, then supplier memory, then Claude (batched, schema-constrained to your
+factor list, prompt-cached), then a confidence gate, then human review. The audit log records
+every reviewer decision. Run with `--labels` to measure accuracy, coverage and auto-accept
+precision. See [docs/classification.md](docs/classification.md).
 
 ### Factor datasets
 

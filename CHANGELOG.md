@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0
+### Added
+- `openscope classify`: hybrid ledger classification. Rules and supplier memory run first,
+  then Claude (structured output limited to registry factor ids, batched, prompt-cached,
+  low effort, server-side refusal fallbacks), then a confidence gate
+- `openscope review-apply`: review CSV round-trip with validation, append-only JSONL audit
+  log, supplier-memory learning, export to spend-based activities
+- Bundled exclusion rules (payroll, tax, depreciation, finance, intercompany, donations, refunds)
+- Evaluation (`--labels`): accuracy, coverage, auto-accept precision, per-category P/R
+- Example 40-line ledger with labels, example rules, illustrative spend factors
+- Optional extra `openscope[ai]`
+
 ## 0.2.0
 ### Added
 - `openscope import-desnz`: importer for the UK DESNZ flat-format conversion factors workbook

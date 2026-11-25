@@ -1,0 +1,11 @@
+# Bundled exclusion rules: spend that is not a purchase of goods/services and therefore not
+# a Scope 3 emissions source (GHG Protocol Scope 3 Standard; Technical Guidance ch. 1).
+# Matched against the GL account name first, then descriptions. Review and extend for your chart of accounts.
+rule_id,field,pattern,decision,scope3_category,factor_id,note
+X-PAYROLL,account_name,\b(salar(y|ies)|wages?|payroll|pension|social security|national insurance|bonus(es)?)\b,exclude,,,Employee compensation is not a purchased good or service
+X-TAX,account_name,\b(vat|sales tax|income tax|corporation tax|withholding|duties payable|tax (payable|expense))\b,exclude,,,Taxes are transfers not purchases
+X-DEPRECIATION,account_name,\b(depreciation|amorti[sz]ation|impairment)\b,exclude,,,Accounting allocation; emissions are counted when capital goods are bought (Cat. 2)
+X-FINANCE,account_name,\b(interest|loan|bank charges?|fx (gain|loss)|exchange (gain|loss)|dividends?)\b,exclude,,,Financial flows; financed emissions belong in Cat. 15 for financial institutions
+X-INTERCO,any,\b(intercompany|inter-company|intra-group)\b,exclude,,,Intra-group transfers are within the reporting boundary
+X-DONATION,account_name,\b(donations?|charit(y|able))\b,exclude,,,Not a purchase of goods or services
+X-INSURANCE-CLAIM,description,\b(insurance claim|refund|reimbursement received|credit note)\b,exclude,,,Reversal or receipt rather than a purchase

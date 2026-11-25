@@ -1,0 +1,41 @@
+line_id,expected_decision,expected_category,note
+AP-1001,classify,1,Professional services
+AP-1002,classify,6,Air travel
+AP-1003,exclude,,Payroll
+AP-1004,classify,1,Software services
+AP-1005,classify,6,Hotel
+AP-1006,classify,5,Waste
+AP-1007,exclude,,Tax
+AP-1008,classify,4,Inbound freight
+AP-1009,classify,2,Capitalised IT
+AP-1010,exclude,,Scope 2 energy - use kWh activity data
+AP-1011,exclude,,Depreciation
+AP-1012,classify,1,Office supplies
+AP-1013,classify,1,Legal services
+AP-1014,classify,6,Taxi
+AP-1015,exclude,,Interest
+AP-1016,exclude,,Intercompany
+AP-1017,classify,1,Cleaning services
+AP-1018,classify,1,Marketing services
+AP-1019,classify,6,Rail
+AP-1020,classify,1,Packaging materials
+AP-1021,exclude,,Payroll
+AP-1022,classify,1,Professional services
+AP-1023,classify,6,Air travel
+AP-1024,exclude,,Scope 1 fuel - use litres activity data
+AP-1025,classify,1,Catering
+AP-1026,classify,8,Leased office (energy not in Scope 1/2)
+AP-1027,classify,1,Software services
+AP-1028,exclude,,Donation
+AP-1029,classify,4,Courier
+AP-1030,classify,1,Audit services
+AP-1031,classify,6,Hotel
+AP-1032,classify,1,Furniture expensed
+AP-1033,exclude,,Refund
+AP-1034,classify,2,Capitalised IT
+AP-1035,classify,5,Waste
+AP-1036,exclude,,Scope 1 gas - use kWh activity data
+AP-1037,unsure,,Too vague to classify
+AP-1038,classify,1,Event services
+AP-1039,classify,1,Cloud services
+AP-1040,classify,1,Legal services

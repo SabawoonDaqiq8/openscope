@@ -15,10 +15,16 @@
 ## v0.2.x — More datasets
 - US EPA GHG Emission Factors Hub, USEEIO (spend-based), residual-mix factors
 
-## v0.3 — AI-assisted Scope 3 spend classifier (flagship)
-- Upload a general-ledger export → map each line to a Scope 3 category and factor
-- LLM + rules hybrid, with confidence scores and a human review queue
-- Every override is logged (who, when, why) for assurance
+## v0.3 — AI-assisted Scope 3 spend classifier (flagship) ✅
+- Ledger import with ERP column aliases
+- Rules → supplier memory → Claude (schema-constrained, batched, prompt-cached) → review
+- Confidence gate, review CSV round-trip, JSONL audit log, supplier memory learning
+- Evaluation: accuracy, coverage, auto-accept precision on a labelled ledger
+
+## v0.3.x
+- Live benchmark on a larger labelled ledger; threshold calibration report
+- Message Batches API for large ledgers (50% cost)
+- USEEIO spend-factor importer
 
 ## v0.4 — API & dashboard
 - FastAPI service + PostgreSQL

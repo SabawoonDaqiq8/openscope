@@ -1,0 +1,41 @@
+Doc No,Posting Date,Vendor,Memo,GL Code,Account Description,Net Amount,Currency
+AP-1001,2025-01-15,Northbeam Consulting Ltd,Strategy workshop Q1,6100,Consulting fees,18500.00,USD
+AP-1002,2025-01-20,BlueSky Airways,Flight JFK-LHR sales team,6400,Travel - airfare,4280.00,USD
+AP-1003,2025-01-31,Payroll Services Inc,January salaries,5000,Salaries and wages,212000.00,USD
+AP-1004,2025-02-03,CloudStack Inc,Annual SaaS subscription CRM,6300,Software subscriptions,36000.00,USD
+AP-1005,2025-02-10,Metro Hotels Group,Hotel 3 nights Chicago conference,6400,Travel - accommodation,960.00,USD
+AP-1006,2025-02-14,City Waste Services,Monthly waste collection,6550,Waste disposal,740.00,USD
+AP-1007,2025-02-28,State Revenue Department,Q4 sales tax remittance,2200,Sales tax payable,15400.00,USD
+AP-1008,2025-03-04,FastFreight Logistics,Inbound pallets from supplier,6600,Freight inbound,5120.00,USD
+AP-1009,2025-03-12,Dellmark Computers,30 laptops for new hires,1500,IT equipment (capitalised),42000.00,USD
+AP-1010,2025-03-15,Grid Power Utility,Electricity HQ March,6500,Utilities - electricity,8900.00,USD
+AP-1011,2025-03-31,Fixed Asset Register,Q1 depreciation charge,7000,Depreciation expense,11800.00,USD
+AP-1012,2025-04-02,Office Depot Supplies,Printer paper and toner,6200,Office supplies,1340.00,USD
+AP-1013,2025-04-08,Harper & Lane LLP,Contract review,6110,Legal fees,9600.00,USD
+AP-1014,2025-04-15,RideShare Corp,Taxi rides client visits,6400,Travel - ground transport,412.00,USD
+AP-1015,2025-04-20,First National Bank,Loan interest April,7200,Interest expense,3100.00,USD
+AP-1016,2025-04-28,Acme Subsidiary GmbH,Intercompany management recharge,6900,Intercompany charges,25000.00,USD
+AP-1017,2025-05-05,GreenClean Facilities,Office cleaning May,6250,Facilities services,2100.00,USD
+AP-1018,2025-05-09,AdReach Media,Digital ad campaign,6700,Marketing,14000.00,USD
+AP-1019,2025-05-14,Rail Connect,Train tickets Boston-NYC,6400,Travel - ground transport,688.00,USD
+AP-1020,2025-05-22,Packright Materials,Cardboard boxes and packaging,6050,Packaging materials,3880.00,USD
+AP-1021,2025-05-30,Payroll Services Inc,May salaries,5000,Salaries and wages,214500.00,USD
+AP-1022,2025-06-03,Northbeam Consulting Ltd,Process improvement project,6100,Consulting fees,22000.00,USD
+AP-1023,2025-06-10,BlueSky Airways,Flights team offsite,6400,Travel - airfare,7350.00,USD
+AP-1024,2025-06-18,Fleet Fuel Card Co,Diesel for company vans June,6450,Vehicle fuel,3950.00,USD
+AP-1025,2025-06-25,Caterwise Events,Catering for all-hands meeting,6800,Staff welfare,2600.00,USD
+AP-1026,2025-07-01,Prime Property Mgmt,Office rent July,6000,Rent,18000.00,USD
+AP-1027,2025-07-09,CloudStack Inc,Additional CRM seats,6300,Software subscriptions,4800.00,USD
+AP-1028,2025-07-15,Children's Hospital Fund,Annual charity donation,7500,Donations,5000.00,USD
+AP-1029,2025-07-22,FastFreight Logistics,Courier documents to client,6600,Freight inbound,145.00,USD
+AP-1030,2025-08-01,Audit Partners LLP,Interim audit fee,6120,Audit fees,16500.00,USD
+AP-1031,2025-08-12,Metro Hotels Group,Hotel 2 nights Denver,6400,Travel - accommodation,610.00,USD
+AP-1032,2025-08-19,Office Depot Supplies,Desk chairs x12,6200,Office supplies,4300.00,USD
+AP-1033,2025-08-26,Insurance Mutual,Refund of overpaid premium,6950,Insurance,-850.00,USD
+AP-1034,2025-09-02,Dellmark Computers,Monitors and docking stations,1500,IT equipment (capitalised),9800.00,USD
+AP-1035,2025-09-11,City Waste Services,Confidential shredding service,6550,Waste disposal,320.00,USD
+AP-1036,2025-09-18,Gas Network Co,Natural gas heating September,6510,Utilities - gas,1450.00,USD
+AP-1037,2025-09-30,Misc Vendor 4471,Services rendered per agreement,6990,Sundry expenses,2750.00,USD
+AP-1038,2025-10-06,TeamBuild Adventures,Team offsite activities,6800,Staff welfare,3900.00,USD
+AP-1039,2025-10-14,CloudStack Inc,Cloud hosting October,6300,Software subscriptions,6100.00,USD
+AP-1040,2025-10-21,Harper & Lane LLP,Employment law advice,6110,Legal fees,4200.00,USD
