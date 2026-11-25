@@ -11,10 +11,48 @@
 Scope 1, 2 and 3 emissions, where every number can be traced back to its activity data,
 emission factor, unit conversion and GWP.
 
-> Status: **alpha (v0.3)**: core engine, the full **UK Government (DESNZ) 2025**
-> conversion-factor set (2,672 factors), and an **AI-assisted Scope 3 spend classifier** with
-> human review and an audit trail. A REST API and web dashboard are on the
-> [roadmap](ROADMAP.md).
+> Status: **alpha (v0.4)**: core engine, the full **UK Government (DESNZ) 2025**
+> conversion-factor set (2,672 factors), an **AI-assisted Scope 3 spend classifier** with
+> human review and an audit trail, and a **web dashboard** (FastAPI + Angular).
+
+![openscope dashboard](docs/images/dashboard-overview-light.png)
+
+## Dashboard
+
+```bash
+docker build -t openscope .
+docker run -p 8000:8000 -v openscope-data:/data openscope
+# open http://localhost:8000 → "Load demo data"; API docs at /docs
+```
+
+| | |
+|---|---|
+| **Overview**: scope totals, Scope 2 dual reporting, Scope 3 by category, hotspots, data quality, disclosure warnings | **Line explorer**: every calculated line with its step-by-step audit trail |
+| **Scope 3 review**: accept / override / exclude classified ledger lines; every decision is audit-logged and teaches supplier memory | **Emission factors**: search all 2,700+ factors with source and GWP basis |
+
+![Scope 3 review queue](docs/images/dashboard-review.png)
+
+**Stack:** FastAPI · SQLAlchemy (SQLite, Postgres-ready) · Angular 22 (standalone components,
+signals, zoneless) · Tailwind CSS · Apache ECharts · TypeScript types generated from the
+OpenAPI spec · one Docker image. Charts use a palette validated for colour-vision deficiency,
+with direct labels, a table view for every chart, and light and dark themes.
+
+<details><summary>Dark mode</summary>
+
+![openscope dashboard, dark mode](docs/images/dashboard-overview-dark.png)
+</details>
+
+<details><summary>Local development (without Docker)</summary>
+
+```bash
+pip install -e ".[dev]"
+uvicorn openscope.api.app:app --reload          # API on :8000 (docs at /docs)
+cd web && npm ci && npm start                    # Angular on :4200, proxies /api
+npm run gen:api                                  # regenerate TS types after API changes
+```
+Set `OPENSCOPE_LLM=1` and `ANTHROPIC_API_KEY` to enable Claude classification in the UI.
+Configuration is documented in [`api/settings.py`](src/openscope/api/settings.py).
+</details>
 
 ## Why
 
@@ -47,20 +85,20 @@ openscope calculate examples/uk_demo_activities.csv --dataset desnz-2025 --gwp A
 
 ```text
 GHG inventory summary (tCO2e)
-────────────────────────────────────────────────────
-  Scope 1                                271.186
-  Scope 2 (location-based)               150.458
-  Scope 2 (market-based)                  44.252
+────────────────────────────────────────────────────────────
+  Scope 1                                        271.186
+  Scope 2 (location-based)                       150.458
+  Scope 2 (market-based)                          44.252
     (grid-average fallback for: Warehouse)
-  Scope 3                                334.580
-    1. Purchased Goods And Service         0.612
-    3. Fuel And Energy Related           106.106
-    4. Upstream Transportation            52.848
-    5. Waste                              11.452
-    6. Business Travel                   143.535
-    7. Employee Commuting                 20.027
-────────────────────────────────────────────────────
-  Total                                  650.019
+  Scope 3                                        334.580
+    1. Purchased goods and services                0.612
+    3. Fuel- and energy-related activities       106.106
+    4. Upstream transportation and distribut      52.848
+    5. Waste generated in operations              11.452
+    6. Business travel                           143.535
+    7. Employee commuting                         20.027
+────────────────────────────────────────────────────────────
+  Total                                          650.019
 ```
 
 Add `--trace` to see the audit trail for every line:
@@ -163,9 +201,9 @@ See [docs/methodology.md](docs/methodology.md).
 ## Development
 
 ```bash
-pytest              # tests
-ruff check .        # lint
-mypy src            # type-check
+pytest                                    # Python tests (engine, classifier, API)
+ruff check . && mypy src                  # lint + strict type-check
+cd web && npx ng test --watch=false       # Angular unit tests (Vitest)
 ```
 
 ## License

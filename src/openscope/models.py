@@ -40,7 +40,26 @@ class Scope3Category(IntEnum):
 
     @property
     def label(self) -> str:
-        return self.name.replace("_", " ").title()
+        return _SCOPE3_LABELS[self.value]
+
+
+_SCOPE3_LABELS = {
+    1: "Purchased goods and services",
+    2: "Capital goods",
+    3: "Fuel- and energy-related activities",
+    4: "Upstream transportation and distribution",
+    5: "Waste generated in operations",
+    6: "Business travel",
+    7: "Employee commuting",
+    8: "Upstream leased assets",
+    9: "Downstream transportation and distribution",
+    10: "Processing of sold products",
+    11: "Use of sold products",
+    12: "End-of-life treatment of sold products",
+    13: "Downstream leased assets",
+    14: "Franchises",
+    15: "Investments",
+}
 
 
 class CalculationMethod(StrEnum):

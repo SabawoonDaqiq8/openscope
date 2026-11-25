@@ -1,0 +1,1918 @@
+{
+  "components": {
+    "schemas": {
+      "Analytics": {
+        "properties": {
+          "by_method": {
+            "items": {
+              "$ref": "#/components/schemas/MethodTotal"
+            },
+            "title": "By Method",
+            "type": "array"
+          },
+          "data_quality": {
+            "items": {
+              "$ref": "#/components/schemas/QualityBucket"
+            },
+            "title": "Data Quality",
+            "type": "array"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/LineError"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "hotspots": {
+            "items": {
+              "$ref": "#/components/schemas/Hotspot"
+            },
+            "title": "Hotspots",
+            "type": "array"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/Totals"
+          }
+        },
+        "required": [
+          "totals",
+          "hotspots",
+          "data_quality",
+          "by_method",
+          "errors"
+        ],
+        "title": "Analytics",
+        "type": "object"
+      },
+      "AuditOut": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "after": {
+            "additionalProperties": true,
+            "title": "After",
+            "type": "object"
+          },
+          "before": {
+            "additionalProperties": true,
+            "title": "Before",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "line_id": {
+            "title": "Line Id",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "reviewer": {
+            "title": "Reviewer",
+            "type": "string"
+          },
+          "timestamp": {
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "line_id",
+          "timestamp",
+          "reviewer",
+          "action",
+          "before",
+          "after",
+          "note"
+        ],
+        "title": "AuditOut",
+        "type": "object"
+      },
+      "Body_create_inventory_api_inventories_post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "description": "Activities CSV",
+            "title": "File",
+            "type": "string"
+          },
+          "gwp_set": {
+            "default": "AR6",
+            "enum": [
+              "AR5",
+              "AR6"
+            ],
+            "title": "Gwp Set",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "reporting_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reporting Year"
+          }
+        },
+        "required": [
+          "file",
+          "name"
+        ],
+        "title": "Body_create_inventory_api_inventories_post",
+        "type": "object"
+      },
+      "Body_create_run_api_classification_runs_post": {
+        "properties": {
+          "currency": {
+            "anyOf": [
+              {
+                "maxLength": 3,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "description": "Ledger CSV export",
+            "title": "File",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "threshold": {
+            "default": 0.85,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Threshold",
+            "type": "number"
+          },
+          "use_llm": {
+            "default": false,
+            "title": "Use Llm",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "file",
+          "name"
+        ],
+        "title": "Body_create_run_api_classification_runs_post",
+        "type": "object"
+      },
+      "CategoryOut": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "value",
+          "label"
+        ],
+        "title": "CategoryOut",
+        "type": "object"
+      },
+      "CategoryTotal": {
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "integer"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "tco2e": {
+            "title": "Tco2E",
+            "type": "number"
+          }
+        },
+        "required": [
+          "category",
+          "label",
+          "tco2e"
+        ],
+        "title": "CategoryTotal",
+        "type": "object"
+      },
+      "DemoOut": {
+        "properties": {
+          "inventory_id": {
+            "title": "Inventory Id",
+            "type": "integer"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "inventory_id",
+          "run_id"
+        ],
+        "title": "DemoOut",
+        "type": "object"
+      },
+      "ExportIn": {
+        "properties": {
+          "gwp_set": {
+            "default": "AR6",
+            "enum": [
+              "AR5",
+              "AR6"
+            ],
+            "title": "Gwp Set",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "reporting_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reporting Year"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "ExportIn",
+        "type": "object"
+      },
+      "ExportOut": {
+        "properties": {
+          "activities": {
+            "title": "Activities",
+            "type": "integer"
+          },
+          "inventory_id": {
+            "title": "Inventory Id",
+            "type": "integer"
+          },
+          "pending_lines": {
+            "title": "Pending Lines",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "inventory_id",
+          "activities",
+          "pending_lines"
+        ],
+        "title": "ExportOut",
+        "type": "object"
+      },
+      "FactorOut": {
+        "properties": {
+          "activity_unit": {
+            "title": "Activity Unit",
+            "type": "string"
+          },
+          "co2e_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Co2E Kg"
+          },
+          "factor_id": {
+            "title": "Factor Id",
+            "type": "string"
+          },
+          "gases": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Gases",
+            "type": "object"
+          },
+          "gwp_basis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gwp Basis"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "region": {
+            "title": "Region",
+            "type": "string"
+          },
+          "scope": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope"
+          },
+          "scope2_method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope2 Method"
+          },
+          "scope3_category": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope3 Category"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          }
+        },
+        "required": [
+          "factor_id",
+          "name",
+          "activity_unit",
+          "co2e_kg",
+          "gases",
+          "gwp_basis",
+          "scope",
+          "scope3_category",
+          "scope2_method",
+          "region",
+          "year",
+          "source",
+          "source_url",
+          "status",
+          "notes"
+        ],
+        "title": "FactorOut",
+        "type": "object"
+      },
+      "FactorPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/FactorOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "items"
+        ],
+        "title": "FactorPage",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Hotspot": {
+        "properties": {
+          "activity_id": {
+            "title": "Activity Id",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "integer"
+          },
+          "scope3_category": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope3 Category"
+          },
+          "share": {
+            "title": "Share",
+            "type": "number"
+          },
+          "tco2e": {
+            "title": "Tco2E",
+            "type": "number"
+          }
+        },
+        "required": [
+          "activity_id",
+          "description",
+          "scope",
+          "scope3_category",
+          "tco2e",
+          "share"
+        ],
+        "title": "Hotspot",
+        "type": "object"
+      },
+      "InventoryDetail": {
+        "properties": {
+          "analytics": {
+            "$ref": "#/components/schemas/Analytics"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error_count": {
+            "title": "Error Count",
+            "type": "integer"
+          },
+          "gwp_set": {
+            "title": "Gwp Set",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "line_items": {
+            "title": "Line Items",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "reporting_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reporting Year"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "total_tco2e": {
+            "title": "Total Tco2E",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "created_at",
+          "source",
+          "gwp_set",
+          "reporting_year",
+          "total_tco2e",
+          "line_items",
+          "error_count",
+          "analytics"
+        ],
+        "title": "InventoryDetail",
+        "type": "object"
+      },
+      "InventoryOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error_count": {
+            "title": "Error Count",
+            "type": "integer"
+          },
+          "gwp_set": {
+            "title": "Gwp Set",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "line_items": {
+            "title": "Line Items",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "reporting_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reporting Year"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "total_tco2e": {
+            "title": "Total Tco2E",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "created_at",
+          "source",
+          "gwp_set",
+          "reporting_year",
+          "total_tco2e",
+          "line_items",
+          "error_count"
+        ],
+        "title": "InventoryOut",
+        "type": "object"
+      },
+      "LineError": {
+        "properties": {
+          "activity_id": {
+            "title": "Activity Id",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "activity_id",
+          "message"
+        ],
+        "title": "LineError",
+        "type": "object"
+      },
+      "LineOut": {
+        "properties": {
+          "activity_id": {
+            "title": "Activity Id",
+            "type": "string"
+          },
+          "co2e_kg": {
+            "title": "Co2E Kg",
+            "type": "number"
+          },
+          "data_quality_score": {
+            "title": "Data Quality Score",
+            "type": "integer"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "factor_id": {
+            "title": "Factor Id",
+            "type": "string"
+          },
+          "factor_source": {
+            "title": "Factor Source",
+            "type": "string"
+          },
+          "factor_status": {
+            "title": "Factor Status",
+            "type": "string"
+          },
+          "gwp_set": {
+            "title": "Gwp Set",
+            "type": "string"
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "number"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "integer"
+          },
+          "scope2_method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope2 Method"
+          },
+          "scope3_category": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope3 Category"
+          },
+          "site": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Site"
+          },
+          "supplier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supplier"
+          },
+          "trace": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Trace",
+            "type": "array"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "activity_id",
+          "description",
+          "site",
+          "supplier",
+          "scope",
+          "scope3_category",
+          "scope2_method",
+          "method",
+          "quantity",
+          "unit",
+          "factor_id",
+          "factor_source",
+          "factor_status",
+          "gwp_set",
+          "co2e_kg",
+          "data_quality_score",
+          "trace"
+        ],
+        "title": "LineOut",
+        "type": "object"
+      },
+      "Meta": {
+        "properties": {
+          "datasets": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Datasets",
+            "type": "array"
+          },
+          "demo_available": {
+            "title": "Demo Available",
+            "type": "boolean"
+          },
+          "gwp_sets": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Gwp Sets",
+            "type": "array"
+          },
+          "llm_enabled": {
+            "title": "Llm Enabled",
+            "type": "boolean"
+          },
+          "scope3_categories": {
+            "items": {
+              "$ref": "#/components/schemas/CategoryOut"
+            },
+            "title": "Scope3 Categories",
+            "type": "array"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "datasets",
+          "gwp_sets",
+          "scope3_categories",
+          "llm_enabled",
+          "demo_available"
+        ],
+        "title": "Meta",
+        "type": "object"
+      },
+      "MethodTotal": {
+        "properties": {
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "tco2e": {
+            "title": "Tco2E",
+            "type": "number"
+          }
+        },
+        "required": [
+          "method",
+          "tco2e"
+        ],
+        "title": "MethodTotal",
+        "type": "object"
+      },
+      "QualityBucket": {
+        "properties": {
+          "lines": {
+            "title": "Lines",
+            "type": "integer"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "tco2e": {
+            "title": "Tco2E",
+            "type": "number"
+          }
+        },
+        "required": [
+          "score",
+          "tco2e",
+          "lines"
+        ],
+        "title": "QualityBucket",
+        "type": "object"
+      },
+      "ReviewIn": {
+        "properties": {
+          "action": {
+            "enum": [
+              "accept",
+              "override",
+              "exclude"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "factor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Factor Id"
+          },
+          "note": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Note",
+            "type": "string"
+          },
+          "reviewer": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Reviewer",
+            "type": "string"
+          },
+          "scope3_category": {
+            "anyOf": [
+              {
+                "maximum": 15.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope3 Category"
+          }
+        },
+        "required": [
+          "reviewer",
+          "action"
+        ],
+        "title": "ReviewIn",
+        "type": "object"
+      },
+      "RunLineOut": {
+        "properties": {
+          "account": {
+            "title": "Account",
+            "type": "string"
+          },
+          "account_name": {
+            "title": "Account Name",
+            "type": "string"
+          },
+          "amount": {
+            "title": "Amount",
+            "type": "number"
+          },
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          },
+          "decision": {
+            "title": "Decision",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "factor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Factor Id"
+          },
+          "line_id": {
+            "title": "Line Id",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "scope3_category": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope3 Category"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "supplier": {
+            "title": "Supplier",
+            "type": "string"
+          }
+        },
+        "required": [
+          "line_id",
+          "date",
+          "supplier",
+          "description",
+          "account",
+          "account_name",
+          "amount",
+          "currency",
+          "status",
+          "decision",
+          "scope3_category",
+          "factor_id",
+          "confidence",
+          "source",
+          "rationale"
+        ],
+        "title": "RunLineOut",
+        "type": "object"
+      },
+      "RunOut": {
+        "properties": {
+          "by_status": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "By Status",
+            "type": "object"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "lines": {
+            "title": "Lines",
+            "type": "integer"
+          },
+          "llm_usage": {
+            "additionalProperties": true,
+            "title": "Llm Usage",
+            "type": "object"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "spend_by_status": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Spend By Status",
+            "type": "object"
+          },
+          "threshold": {
+            "title": "Threshold",
+            "type": "number"
+          },
+          "used_llm": {
+            "title": "Used Llm",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "created_at",
+          "threshold",
+          "used_llm",
+          "lines",
+          "by_status",
+          "spend_by_status",
+          "llm_usage"
+        ],
+        "title": "RunOut",
+        "type": "object"
+      },
+      "Totals": {
+        "properties": {
+          "data_quality_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Quality Score"
+          },
+          "illustrative_factor_share": {
+            "title": "Illustrative Factor Share",
+            "type": "number"
+          },
+          "line_items": {
+            "title": "Line Items",
+            "type": "integer"
+          },
+          "scope1_tco2e": {
+            "title": "Scope1 Tco2E",
+            "type": "number"
+          },
+          "scope2_location_tco2e": {
+            "title": "Scope2 Location Tco2E",
+            "type": "number"
+          },
+          "scope2_market_fallback_sites": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Scope2 Market Fallback Sites",
+            "type": "array"
+          },
+          "scope2_market_tco2e": {
+            "title": "Scope2 Market Tco2E",
+            "type": "number"
+          },
+          "scope3_by_category": {
+            "items": {
+              "$ref": "#/components/schemas/CategoryTotal"
+            },
+            "title": "Scope3 By Category",
+            "type": "array"
+          },
+          "scope3_tco2e": {
+            "title": "Scope3 Tco2E",
+            "type": "number"
+          },
+          "total_tco2e": {
+            "title": "Total Tco2E",
+            "type": "number"
+          }
+        },
+        "required": [
+          "scope1_tco2e",
+          "scope2_location_tco2e",
+          "scope2_market_tco2e",
+          "scope2_market_fallback_sites",
+          "scope3_tco2e",
+          "scope3_by_category",
+          "total_tco2e",
+          "data_quality_score",
+          "illustrative_factor_share",
+          "line_items"
+        ],
+        "title": "Totals",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Open-source, auditable carbon accounting: GHG Protocol Scope 1, 2 and 3.",
+    "title": "openscope API",
+    "version": "0.4.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/classification-runs": {
+      "get": {
+        "operationId": "list_runs_api_classification_runs_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RunOut"
+                  },
+                  "title": "Response List Runs Api Classification Runs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Runs",
+        "tags": [
+          "classification"
+        ]
+      },
+      "post": {
+        "operationId": "create_run_api_classification_runs_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_run_api_classification_runs_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Run",
+        "tags": [
+          "classification"
+        ]
+      }
+    },
+    "/api/classification-runs/{run_id}": {
+      "get": {
+        "operationId": "get_run_api_classification_runs__run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Run",
+        "tags": [
+          "classification"
+        ]
+      }
+    },
+    "/api/classification-runs/{run_id}/audit": {
+      "get": {
+        "operationId": "run_audit_api_classification_runs__run_id__audit_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AuditOut"
+                  },
+                  "title": "Response Run Audit Api Classification Runs  Run Id  Audit Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run Audit",
+        "tags": [
+          "classification"
+        ]
+      }
+    },
+    "/api/classification-runs/{run_id}/export": {
+      "post": {
+        "operationId": "export_run_api_classification_runs__run_id__export_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Run",
+        "tags": [
+          "classification"
+        ]
+      }
+    },
+    "/api/classification-runs/{run_id}/lines": {
+      "get": {
+        "operationId": "run_lines_api_classification_runs__run_id__lines_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RunLineOut"
+                  },
+                  "title": "Response Run Lines Api Classification Runs  Run Id  Lines Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run Lines",
+        "tags": [
+          "classification"
+        ]
+      }
+    },
+    "/api/classification-runs/{run_id}/lines/{line_id}/review": {
+      "post": {
+        "operationId": "review_line_api_classification_runs__run_id__lines__line_id__review_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "line_id",
+            "required": true,
+            "schema": {
+              "title": "Line Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunLineOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Review Line",
+        "tags": [
+          "classification"
+        ]
+      }
+    },
+    "/api/demo": {
+      "post": {
+        "operationId": "load_demo_api_demo_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Load Demo",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/api/factors": {
+      "get": {
+        "operationId": "factors_api_factors_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scope",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 3,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Scope"
+            }
+          },
+          {
+            "in": "query",
+            "name": "spend_only",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Spend Only",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FactorPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Factors",
+        "tags": [
+          "factors"
+        ]
+      }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Health Api Health Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/api/inventories": {
+      "get": {
+        "operationId": "list_inventories_api_inventories_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/InventoryOut"
+                  },
+                  "title": "Response List Inventories Api Inventories Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Inventories",
+        "tags": [
+          "inventories"
+        ]
+      },
+      "post": {
+        "operationId": "create_inventory_api_inventories_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_inventory_api_inventories_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Inventory",
+        "tags": [
+          "inventories"
+        ]
+      }
+    },
+    "/api/inventories/{inventory_id}": {
+      "delete": {
+        "operationId": "delete_inventory_api_inventories__inventory_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "inventory_id",
+            "required": true,
+            "schema": {
+              "title": "Inventory Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Inventory",
+        "tags": [
+          "inventories"
+        ]
+      },
+      "get": {
+        "operationId": "get_inventory_api_inventories__inventory_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "inventory_id",
+            "required": true,
+            "schema": {
+              "title": "Inventory Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Inventory",
+        "tags": [
+          "inventories"
+        ]
+      }
+    },
+    "/api/inventories/{inventory_id}/lines": {
+      "get": {
+        "operationId": "inventory_lines_api_inventories__inventory_id__lines_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "inventory_id",
+            "required": true,
+            "schema": {
+              "title": "Inventory Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scope",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 3,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Scope"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LineOut"
+                  },
+                  "title": "Response Inventory Lines Api Inventories  Inventory Id  Lines Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Inventory Lines",
+        "tags": [
+          "inventories"
+        ]
+      }
+    },
+    "/api/meta": {
+      "get": {
+        "operationId": "meta_api_meta_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Meta"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Meta",
+        "tags": [
+          "meta"
+        ]
+      }
+    }
+  }
+}

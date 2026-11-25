@@ -37,18 +37,18 @@ def _registry(
 def _print_summary(inv: Inventory) -> None:
     s = inv.summary()
     print("\nGHG inventory summary (tCO2e)")
-    print("─" * 52)
-    print(f"  Scope 1                         {s['scope1_tco2e']:>14,.3f}")
-    print(f"  Scope 2 (location-based)        {s['scope2_location_tco2e']:>14,.3f}")
-    print(f"  Scope 2 (market-based)          {s['scope2_market_tco2e']:>14,.3f}")
+    print("─" * 60)
+    print(f"  Scope 1                                 {s['scope1_tco2e']:>14,.3f}")
+    print(f"  Scope 2 (location-based)                {s['scope2_location_tco2e']:>14,.3f}")
+    print(f"  Scope 2 (market-based)                  {s['scope2_market_tco2e']:>14,.3f}")
     if s["scope2_market_fallback_sites"]:
         sites = ", ".join(s["scope2_market_fallback_sites"])
         print(f"    (grid-average fallback for: {sites})")
-    print(f"  Scope 3                         {s['scope3_tco2e']:>14,.3f}")
+    print(f"  Scope 3                                 {s['scope3_tco2e']:>14,.3f}")
     for cat, v in s["scope3_by_category_tco2e"].items():
-        print(f"    {cat[:30]:<30}{v:>14,.3f}")
-    print("─" * 52)
-    print(f"  Total                           {s['total_tco2e']:>14,.3f}")
+        print(f"    {cat[:40]:<40}{v:>12,.3f}")
+    print("─" * 60)
+    print(f"  Total                                   {s['total_tco2e']:>14,.3f}")
     print(f"\n  Line items: {s['line_items']}   Weighted data quality: {s['data_quality_score']}/5")
     if s["illustrative_factor_share"] > 0:
         print(

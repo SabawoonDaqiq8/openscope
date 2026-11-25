@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.0
+### Added
+- REST API (`openscope.api`, FastAPI): inventories, line-level results with audit trails,
+  factor search, classification runs, per-line review with audit log and supplier memory,
+  export of reviewed spend to an inventory, demo loader; OpenAPI docs at `/docs`
+- Persistence with SQLAlchemy (SQLite by default)
+- Angular 22 dashboard (`web/`): overview with KPI tiles and charts, line explorer,
+  Scope 3 review queue, factor browser, uploads; light/dark themes; chart/table toggles
+- TypeScript client types generated from the OpenAPI spec (`npm run gen:api`), checked in CI
+- Dockerfile (single image serving API + dashboard); CI builds and smoke-tests it
+- Optional extra `openscope[api]`
+
+### Changed
+- Scope 3 category labels use the official GHG Protocol names
+
 ## 0.3.0
 ### Added
 - `openscope classify`: hybrid ledger classification. Rules and supplier memory run first,

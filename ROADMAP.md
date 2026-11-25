@@ -26,9 +26,15 @@
 - Message Batches API for large ledgers (50% cost)
 - USEEIO spend-factor importer
 
-## v0.4 — API & dashboard
-- FastAPI service + PostgreSQL
-- Web dashboard: scope breakdown, hotspots, data-quality heatmap, supplier engagement list
+## v0.4 — API & dashboard ✅
+- FastAPI service (OpenAPI docs), SQLAlchemy persistence (SQLite; Postgres-ready)
+- Angular dashboard: overview, line explorer with audit trail, Scope 3 review queue, factor browser, upload
+- Single Docker image; CI builds and smoke-tests it
+
+## v0.4.x
+- Public demo deployment
+- Authentication and multi-tenant workspaces
+- Supplier engagement view (top suppliers by emissions, data-quality upgrade targets)
 
 ## v0.5 — Decarbonization pathways
 - Abatement levers, marginal abatement cost curve, Monte Carlo uncertainty
