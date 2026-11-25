@@ -68,6 +68,18 @@ Run with `--llm` (needs `ANTHROPIC_API_KEY` and `pip install 'openscope[ai]'`) t
 hybrid pipeline. The sample is small and synthetic, so build a labelled sample from your own
 ledger before trusting any threshold.
 
+### Benchmark script
+
+```bash
+export ANTHROPIC_API_KEY=...            # your key; never commit it
+python scripts/benchmark_classifier.py --models claude-opus-5-5,claude-sonnet-5-5,claude-haiku-5-5
+```
+
+This runs rules-only, Claude-only and hybrid configurations on the labelled sample, re-scores
+each at thresholds from 0.5 to 0.95 (no extra API calls) and writes
+`docs/benchmarks/classifier.md` plus the raw model output in `classifier-results.json`.
+`--rules-only` needs no key.
+
 Model-reported confidence is not a calibrated probability. Pick the threshold from the
 auto-accept precision on labelled data, not from the number alone.
 
