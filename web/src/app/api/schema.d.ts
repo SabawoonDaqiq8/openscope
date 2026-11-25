@@ -194,6 +194,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/inventories/{inventory_id}/disclosure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inventory Disclosure */
+        get: operations["inventory_disclosure_api_inventories__inventory_id__disclosure_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inventories/{inventory_id}/disclosure/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Disclosure */
+        get: operations["export_disclosure_api_inventories__inventory_id__disclosure_export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/inventories/{inventory_id}/lines": {
         parameters: {
             query?: never;
@@ -363,6 +397,69 @@ export interface components {
             inventory_id: number;
             /** Run Id */
             run_id: number;
+        };
+        /** DisclosureCheckOut */
+        DisclosureCheckOut: {
+            /** Code */
+            code: string;
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "blocker" | "warning" | "info";
+            /** Message */
+            message: string;
+        };
+        /** DisclosureOut */
+        DisclosureOut: {
+            /** Base Year */
+            base_year: number | null;
+            /** Basis */
+            basis: string[];
+            /** Checks */
+            checks: components["schemas"]["DisclosureCheckOut"][];
+            /**
+             * Framework
+             * @enum {string}
+             */
+            framework: "esrs" | "issb";
+            /** Prior Year */
+            prior_year: number | null;
+            /** Ready */
+            ready: boolean;
+            /** Reporting Year */
+            reporting_year: number | null;
+            /** Revenue Currency */
+            revenue_currency: string | null;
+            /** Rows */
+            rows: components["schemas"]["DisclosureRowOut"][];
+            /** Title */
+            title: string;
+        };
+        /** DisclosureRowOut */
+        DisclosureRowOut: {
+            /** Base */
+            base: number | null;
+            /** Change Vs Base */
+            change_vs_base: number | null;
+            /** Change Vs Prior */
+            change_vs_prior: number | null;
+            /** Current */
+            current: number | null;
+            /** Indent */
+            indent: number;
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Note */
+            note: string;
+            /** Prior */
+            prior: number | null;
+            /** Reference */
+            reference: string;
+            /** Unit */
+            unit: string;
         };
         /** ExportIn */
         ExportIn: {
@@ -1280,6 +1377,83 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    inventory_disclosure_api_inventories__inventory_id__disclosure_get: {
+        parameters: {
+            query?: {
+                framework?: "esrs" | "issb";
+                prior_id?: number | null;
+                base_id?: number | null;
+                net_revenue?: number | null;
+                revenue_currency?: string | null;
+                ets_share?: number | null;
+            };
+            header?: never;
+            path: {
+                inventory_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisclosureOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_disclosure_api_inventories__inventory_id__disclosure_export_get: {
+        parameters: {
+            query?: {
+                format?: "csv" | "md" | "json";
+                framework?: "esrs" | "issb";
+                prior_id?: number | null;
+                base_id?: number | null;
+                net_revenue?: number | null;
+                revenue_currency?: string | null;
+                ets_share?: number | null;
+            };
+            header?: never;
+            path: {
+                inventory_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
             };
             /** @description Validation Error */
             422: {

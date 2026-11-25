@@ -242,6 +242,231 @@
         "title": "DemoOut",
         "type": "object"
       },
+      "DisclosureCheckOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "level": {
+            "enum": [
+              "blocker",
+              "warning",
+              "info"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "level",
+          "code",
+          "message"
+        ],
+        "title": "DisclosureCheckOut",
+        "type": "object"
+      },
+      "DisclosureOut": {
+        "properties": {
+          "base_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Year"
+          },
+          "basis": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Basis",
+            "type": "array"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/DisclosureCheckOut"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "framework": {
+            "enum": [
+              "esrs",
+              "issb"
+            ],
+            "title": "Framework",
+            "type": "string"
+          },
+          "prior_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prior Year"
+          },
+          "ready": {
+            "title": "Ready",
+            "type": "boolean"
+          },
+          "reporting_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reporting Year"
+          },
+          "revenue_currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue Currency"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/DisclosureRowOut"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "framework",
+          "title",
+          "reporting_year",
+          "prior_year",
+          "base_year",
+          "ready",
+          "rows",
+          "checks",
+          "basis",
+          "revenue_currency"
+        ],
+        "title": "DisclosureOut",
+        "type": "object"
+      },
+      "DisclosureRowOut": {
+        "properties": {
+          "base": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base"
+          },
+          "change_vs_base": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Vs Base"
+          },
+          "change_vs_prior": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Vs Prior"
+          },
+          "current": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current"
+          },
+          "indent": {
+            "title": "Indent",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "prior": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prior"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "reference",
+          "unit",
+          "current",
+          "prior",
+          "base",
+          "indent",
+          "note",
+          "change_vs_prior",
+          "change_vs_base"
+        ],
+        "title": "DisclosureRowOut",
+        "type": "object"
+      },
       "ExportIn": {
         "properties": {
           "gwp_set": {
@@ -1648,7 +1873,7 @@
   "info": {
     "description": "Open-source, auditable carbon accounting: GHG Protocol Scope 1, 2 and 3.",
     "title": "openscope API",
-    "version": "0.6.0"
+    "version": "0.7.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -2261,6 +2486,299 @@
         "summary": "Get Inventory",
         "tags": [
           "inventories"
+        ]
+      }
+    },
+    "/api/inventories/{inventory_id}/disclosure": {
+      "get": {
+        "operationId": "inventory_disclosure_api_inventories__inventory_id__disclosure_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "inventory_id",
+            "required": true,
+            "schema": {
+              "title": "Inventory Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "framework",
+            "required": false,
+            "schema": {
+              "default": "esrs",
+              "enum": [
+                "esrs",
+                "issb"
+              ],
+              "title": "Framework",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "prior_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Prior Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "base_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Base Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "net_revenue",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "exclusiveMinimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Net Revenue"
+            }
+          },
+          {
+            "in": "query",
+            "name": "revenue_currency",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 3,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Revenue Currency"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ets_share",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 100,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ets Share"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisclosureOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Inventory Disclosure",
+        "tags": [
+          "disclosure"
+        ]
+      }
+    },
+    "/api/inventories/{inventory_id}/disclosure/export": {
+      "get": {
+        "operationId": "export_disclosure_api_inventories__inventory_id__disclosure_export_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "inventory_id",
+            "required": true,
+            "schema": {
+              "title": "Inventory Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "required": false,
+            "schema": {
+              "default": "csv",
+              "enum": [
+                "csv",
+                "md",
+                "json"
+              ],
+              "title": "Format",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "framework",
+            "required": false,
+            "schema": {
+              "default": "esrs",
+              "enum": [
+                "esrs",
+                "issb"
+              ],
+              "title": "Framework",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "prior_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Prior Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "base_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Base Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "net_revenue",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "exclusiveMinimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Net Revenue"
+            }
+          },
+          {
+            "in": "query",
+            "name": "revenue_currency",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 3,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Revenue Currency"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ets_share",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 100,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ets Share"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Disclosure",
+        "tags": [
+          "disclosure"
         ]
       }
     },

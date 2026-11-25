@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.7.0
+### Added
+- `openscope.disclosure`: ESRS E1-6 and IFRS S2 §29(a) GHG emissions tables with prior-year and
+  base-year comparison, GHG intensity per net revenue, readiness checks (blocker / warning /
+  info) and a generated basis of preparation; CSV, Markdown and JSON renderers
+- `openscope disclose` CLI (exits non-zero when blockers exist, for use in CI pipelines)
+- API: `GET /api/inventories/{id}/disclosure` and `/disclosure/export?format=csv|md|json`
+- Dashboard **Disclosure** page: framework toggle, comparatives, revenue and ETS inputs,
+  readiness panel, downloads
+- Demo: 2024 inventory for the same fictional company (comparatives; no renewable tariff yet)
+
 ## 0.6.0
 ### Added
 - `openscope.pathway`: decarbonisation pathway simulator with abatement levers (selectors,

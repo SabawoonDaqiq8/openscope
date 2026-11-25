@@ -43,9 +43,12 @@
 ## v0.6.x
 - Grid decarbonisation path for Scope 2; cost uncertainty; saved scenarios on the server
 
+## v0.7 — Climate disclosure ✅
+- ESRS E1-6 / IFRS S2 §29(a) tables, comparatives, intensity, readiness checks, exports
+
 ## Later datasets
 - US EPA GHG Emission Factors Hub (full), residual-mix factors (AIB, Green-e)
 
 ## Later
-- ESRS E1 / IFRS S2 disclosure exports
+- ESRS XBRL tagging; E1-5 energy consumption and mix; E1-4 targets from pathway scenarios
 - PCAF financed-emissions module

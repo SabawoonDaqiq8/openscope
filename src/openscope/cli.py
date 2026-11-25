@@ -199,6 +199,45 @@ def cmd_pathway(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_disclose(args: argparse.Namespace) -> int:
+    from openscope import disclosure as dc
+
+    reg = _registry(args.factors, args.no_bundled, args.dataset)
+    errors = 0
+
+    def period(path: str | None, year: int | None) -> dc.Period | None:
+        nonlocal errors
+        if path is None:
+            return None
+        batch = Calculator(reg, args.gwp, year).calculate_many(read_activities(path))
+        if path == args.activities:
+            errors = len(batch.errors)
+        return dc.Period(Inventory(batch.results), year, args.gwp)
+
+    current = period(args.activities, args.year)
+    assert current is not None
+    d = dc.build(
+        current,
+        framework=args.framework,
+        prior=period(args.prior, args.year - 1 if args.year else None),
+        base=period(args.base, args.base_year),
+        net_revenue=args.net_revenue,
+        revenue_currency=args.currency,
+        ets_share=args.ets_share / 100 if args.ets_share is not None else None,
+        calculation_errors=errors,
+    )
+    render = {"md": dc.to_markdown, "csv": dc.to_csv, "json": dc.to_json}[args.format]
+    text = render(d)
+    if args.out:
+        Path(args.out).write_text(text, encoding="utf-8")
+        print(f"Wrote {args.framework.upper()} disclosure to {args.out}")
+    else:
+        print(text)
+    if not d.ready:
+        print("Not ready for disclosure: see the blocker checks.", file=sys.stderr)
+    return 0 if d.ready else 1
+
+
 def cmd_classify(args: argparse.Namespace) -> int:
     from openscope import classify as cl
 
@@ -311,6 +350,23 @@ def build_parser() -> argparse.ArgumentParser:
     pw.add_argument("--gwp", default="AR6", choices=["AR5", "AR6"])
     pw.add_argument("--json", action="store_true")
     pw.set_defaults(func=cmd_pathway)
+
+    ds = sub.add_parser(
+        "disclose", parents=[common], help="ESRS E1-6 / IFRS S2 GHG emissions disclosure table"
+    )
+    ds.add_argument("activities", help="Reporting-year activities CSV")
+    ds.add_argument("--framework", default="esrs", choices=["esrs", "issb"])
+    ds.add_argument("--year", type=int, help="Reporting year")
+    ds.add_argument("--prior", help="Prior-year activities CSV (comparatives)")
+    ds.add_argument("--base", help="Base-year activities CSV")
+    ds.add_argument("--base-year", type=int)
+    ds.add_argument("--net-revenue", type=float, help="Net revenue (for GHG intensity)")
+    ds.add_argument("--currency", help="Currency of net revenue")
+    ds.add_argument("--ets-share", type=float, help="%% of Scope 1 under regulated ETS")
+    ds.add_argument("--gwp", default="AR6", choices=["AR5", "AR6"])
+    ds.add_argument("--format", default="md", choices=["md", "csv", "json"])
+    ds.add_argument("--out", help="Write to a file instead of stdout")
+    ds.set_defaults(func=cmd_disclose)
 
     u = sub.add_parser("import-useeio", help="Convert EPA supply chain factors to factor CSV")
     u.add_argument("by_ghg", help="SupplyChainGHGEmissionFactors_*_NAICS_byGHG_*.csv")

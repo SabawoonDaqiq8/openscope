@@ -143,7 +143,11 @@ def test_demo_is_idempotent(client: TestClient) -> None:
     a = client.post("/api/demo").json()
     b = client.post("/api/demo").json()
     assert a == b
-    assert len(client.get("/api/inventories").json()) == 1
+    names = [i["name"] for i in client.get("/api/inventories").json()]
+    assert names == [
+        "Demo: UK company 2025 (DESNZ factors)",
+        "Demo: UK company 2024 (DESNZ factors)",
+    ]
     assert len(client.get("/api/classification-runs").json()) == 1
 
 
@@ -172,11 +176,11 @@ def test_public_demo_mode_preloads_data(tmp_path: Path) -> None:
     settings.add_demo_defaults()
     c = TestClient(create_app(settings))
     assert c.get("/api/meta").json()["public_demo"] is True
-    assert len(c.get("/api/inventories").json()) == 1
+    assert len(c.get("/api/inventories").json()) == 2
     assert len(c.get("/api/classification-runs").json()) == 1
     # restarting against the same database does not duplicate the demo
     c2 = TestClient(create_app(settings))
-    assert len(c2.get("/api/inventories").json()) == 1
+    assert len(c2.get("/api/inventories").json()) == 2
 
 
 def test_pathway_endpoint_on_demo(client: TestClient) -> None:

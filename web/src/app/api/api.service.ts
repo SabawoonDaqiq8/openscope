@@ -21,6 +21,16 @@ export type DemoOut = Schemas['DemoOut'];
 export type Scenario = Schemas['Scenario'];
 export type Lever = Schemas['Lever'];
 export type PathwayOut = Schemas['PathwayOut'];
+export type DisclosureOut = Schemas['DisclosureOut'];
+
+export interface DisclosureQuery {
+  framework: 'esrs' | 'issb';
+  prior_id?: number | null;
+  base_id?: number | null;
+  net_revenue?: number | null;
+  revenue_currency?: string | null;
+  ets_share?: number | null;
+}
 
 function params(values: Record<string, string | number | boolean | null | undefined>) {
   let p = new HttpParams();
@@ -129,6 +139,21 @@ export class ApiService {
 
   demoScenario(): Observable<Scenario> {
     return this.http.get<Scenario>(`${this.base}/pathway/demo-scenario`);
+  }
+
+  disclosure(inventoryId: number, q: DisclosureQuery): Observable<DisclosureOut> {
+    return this.http.get<DisclosureOut>(`${this.base}/inventories/${inventoryId}/disclosure`, {
+      params: params({ ...q }),
+    });
+  }
+
+  disclosureExportUrl(
+    inventoryId: number,
+    q: DisclosureQuery,
+    format: 'csv' | 'md' | 'json',
+  ): string {
+    const p = params({ ...q, format }).toString();
+    return `${this.base}/inventories/${inventoryId}/disclosure/export?${p}`;
   }
 
   demo(): Observable<DemoOut> {

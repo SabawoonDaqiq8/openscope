@@ -236,3 +236,36 @@ class PathwayOut(BaseModel):
     scope12: PathwayGroupOut
     scope3: PathwayGroupOut
     currency: str
+
+
+class DisclosureRowOut(BaseModel):
+    key: str
+    label: str
+    reference: str
+    unit: str
+    current: float | None
+    prior: float | None
+    base: float | None
+    indent: int
+    note: str
+    change_vs_prior: float | None
+    change_vs_base: float | None
+
+
+class DisclosureCheckOut(BaseModel):
+    level: Literal["blocker", "warning", "info"]
+    code: str
+    message: str
+
+
+class DisclosureOut(BaseModel):
+    framework: Literal["esrs", "issb"]
+    title: str
+    reporting_year: int | None
+    prior_year: int | None
+    base_year: int | None
+    ready: bool
+    rows: list[DisclosureRowOut]
+    checks: list[DisclosureCheckOut]
+    basis: list[str]
+    revenue_currency: str | None

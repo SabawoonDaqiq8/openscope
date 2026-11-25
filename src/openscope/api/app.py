@@ -21,11 +21,11 @@ from fastapi import (
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from openscope import __version__
+from openscope import __version__, disclosure
 from openscope.api import db, schemas
 from openscope.api.service import NotFound, Service
 from openscope.api.settings import Settings
@@ -141,6 +141,71 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def delete_inventory(inventory_id: int, session: SessionDep) -> None:
         session.delete(service.get_inventory(session, inventory_id))
         session.commit()
+
+    # -- disclosure ------------------------------------------------------------------------
+    def _disclosure(
+        inventory_id: int,
+        session: Session,
+        framework: Literal["esrs", "issb"],
+        prior_id: int | None,
+        base_id: int | None,
+        net_revenue: float | None,
+        revenue_currency: str | None,
+        ets_share: float | None,
+    ) -> disclosure.Disclosure:
+        return service.disclosure(
+            session,
+            service.get_inventory(session, inventory_id),
+            framework=framework,
+            prior_id=prior_id,
+            base_id=base_id,
+            net_revenue=net_revenue,
+            revenue_currency=revenue_currency,
+            ets_share=ets_share / 100 if ets_share is not None else None,
+        )
+
+    @api.get("/inventories/{inventory_id}/disclosure", tags=["disclosure"])
+    def inventory_disclosure(
+        inventory_id: int,
+        session: SessionDep,
+        framework: Literal["esrs", "issb"] = "esrs",
+        prior_id: int | None = None,
+        base_id: int | None = None,
+        net_revenue: Annotated[float | None, Query(gt=0)] = None,
+        revenue_currency: Annotated[str | None, Query(max_length=3)] = None,
+        ets_share: Annotated[float | None, Query(ge=0, le=100)] = None,
+    ) -> schemas.DisclosureOut:
+        d = _disclosure(inventory_id, session, framework, prior_id, base_id, net_revenue,
+                        revenue_currency, ets_share)  # fmt: skip
+        return schemas.DisclosureOut.model_validate(d.as_dict())
+
+    @api.get("/inventories/{inventory_id}/disclosure/export", tags=["disclosure"])
+    def export_disclosure(
+        inventory_id: int,
+        session: SessionDep,
+        format: Literal["csv", "md", "json"] = "csv",
+        framework: Literal["esrs", "issb"] = "esrs",
+        prior_id: int | None = None,
+        base_id: int | None = None,
+        net_revenue: Annotated[float | None, Query(gt=0)] = None,
+        revenue_currency: Annotated[str | None, Query(max_length=3)] = None,
+        ets_share: Annotated[float | None, Query(ge=0, le=100)] = None,
+    ) -> Response:
+        d = _disclosure(inventory_id, session, framework, prior_id, base_id, net_revenue,
+                        revenue_currency, ets_share)  # fmt: skip
+        body, media = {
+            "csv": (disclosure.to_csv, "text/csv"),
+            "md": (disclosure.to_markdown, "text/markdown"),
+            "json": (disclosure.to_json, "application/json"),
+        }[format]
+        name = f"openscope-{framework}-e1-6-{d.reporting_year or inventory_id}.{format}"
+        if framework == "issb":
+            name = f"openscope-ifrs-s2-ghg-{d.reporting_year or inventory_id}.{format}"
+        return Response(
+            body(d),
+            media_type=f"{media}; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{name}"'},
+        )
 
     # -- pathways --------------------------------------------------------------------------
     @api.post("/inventories/{inventory_id}/pathway", tags=["pathways"])

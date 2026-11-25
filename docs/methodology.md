@@ -122,3 +122,23 @@ Implemented in `openscope.pathway` (see the module docstring for the full method
 Limitations: levers are independent multiplicative cuts (no physical coupling, e.g. heat pumps
 adding Scope 2 must be netted into the reduction); there is no grid decarbonisation path and
 no cost uncertainty yet.
+
+## Disclosure tables
+
+`openscope.disclosure` maps inventory metrics onto ESRS E1-6 and IFRS S2 §29(a):
+
+| Metric | ESRS E1-6 | IFRS S2 |
+|---|---|---|
+| Gross Scope 1 | §48(a) | §29(a)(i)(1) |
+| Share of Scope 1 under regulated ETS | §48(b) (user input) | – |
+| Scope 2 location-based | §49(a) | §29(a)(i)(2), (v) |
+| Scope 2 market-based | §49(b) | §29(a)(v) (contractual instruments) |
+| Scope 3 total and categories | §51, AR 46 | §29(a)(i)(3), (vi) |
+| Totals (location / market) | §52(a)/(b) | – |
+| GHG intensity per net revenue | §53 (tCO2e per million currency units) | – |
+
+Readiness levels: **blocker** (illustrative factors, calculation errors), **warning** (non-AR6
+GWPs, Scope 2 market-based fallback, missing net revenue), **info** (unreported Scope 3
+categories, missing comparatives or ETS share, biogenic CO2 not calculated, a high spend-based
+share). Not covered: E1-4 targets, E1-5 energy, E1-7 removals and credits, consolidation scope
+(§50), and XBRL tagging.

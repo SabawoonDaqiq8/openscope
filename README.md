@@ -14,8 +14,8 @@ emission factor, unit conversion and GWP.
 > Status: **alpha (v0.6)**: core engine, official factor datasets (**UK DESNZ 2025**, 2,672
 > factors, and **US EPA supply chain factors v1.3**, 1,016 spend-based factors), an
 > **AI-assisted Scope 3 spend classifier** with human review and an audit trail, a
-> **decarbonisation pathway simulator** (MACC, science-based targets, Monte Carlo), and a **web
-> dashboard** (FastAPI + Angular).
+> **decarbonisation pathway simulator** (MACC, science-based targets, Monte Carlo), **ESRS E1-6 /
+> IFRS S2 disclosure tables** with readiness checks, and a **web dashboard** (FastAPI + Angular).
 
 ![openscope dashboard](docs/images/dashboard-overview-light.png)
 
@@ -34,7 +34,7 @@ docker run -p 8000:8000 -v openscope-data:/data openscope
 |---|---|
 | **Overview**: scope totals, Scope 2 dual reporting, Scope 3 by category, hotspots, data quality, disclosure warnings | **Line explorer**: every calculated line with its step-by-step audit trail |
 | **Scope 3 review**: accept / override / exclude classified ledger lines; every decision is audit-logged and teaches supplier memory | **Pathways**: abatement levers, MACC, science-based targets and Monte Carlo uncertainty |
-| **Emission factors**: search all 3,700+ factors with source and GWP basis | **Upload**: activity data or a ledger export |
+| **Disclosure**: ESRS E1-6 / IFRS S2 tables, readiness checks, CSV/Markdown/JSON export | **Emission factors**: search all 3,700+ factors with source and GWP basis |
 
 ![Scope 3 review queue](docs/images/dashboard-review.png)
 
@@ -61,6 +61,31 @@ openscope pathway examples/uk_demo_activities.csv --scenario examples/pathway_de
 
 The demo scenario's costs and reductions are **illustrative assumptions** and are flagged in the
 UI.
+
+### Climate disclosure (ESRS E1-6 · IFRS S2)
+
+![Disclosure](docs/images/dashboard-disclosure.png)
+
+Turns inventories into the GHG emissions table each framework asks for:
+
+* **ESRS E1-6**: gross Scope 1 and the share under regulated ETS (§48), Scope 2 location- and
+  market-based (§49), total and significant Scope 3 categories (§51), totals (§52), GHG
+  intensity per net revenue (§53), with prior-year and base-year comparison.
+* **IFRS S2 §29(a)**: absolute gross Scope 1, 2 (location-based, plus market-based for
+  contractual instruments) and 3 with categories.
+* **Readiness checks**: what an assurance provider would raise (illustrative factors and
+  calculation errors block; non-AR6 GWPs, Scope 2 grid-average fallback and missing revenue
+  warn; unreported Scope 3 categories and biogenic CO2 are noted).
+* A **basis of preparation** generated from the calculation metadata, and CSV, Markdown and
+  JSON export.
+
+```bash
+openscope disclose examples/uk_demo_activities.csv --prior examples/uk_demo_activities_2024.csv \
+    --dataset desnz-2025 --year 2025 --net-revenue 12500000 --currency GBP --ets-share 0
+```
+
+References are to ESRS Set 1 (Delegated Regulation (EU) 2023/2772) and IFRS S2. The EU Omnibus
+simplification may change ESRS; check the version that applies to your reporting period.
 
 **Stack:** FastAPI · SQLAlchemy (SQLite, Postgres-ready) · Angular 22 (standalone components,
 signals, zoneless) · Tailwind CSS · Apache ECharts · TypeScript types generated from the

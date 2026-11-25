@@ -38,6 +38,16 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/pathways').then((m) => m.PathwaysPage),
   },
   {
+    path: 'disclosure',
+    title: 'Disclosure · openscope',
+    loadComponent: () => import('./pages/disclosure').then((m) => m.DisclosurePage),
+  },
+  {
+    path: 'disclosure/:id',
+    title: 'Disclosure · openscope',
+    loadComponent: () => import('./pages/disclosure').then((m) => m.DisclosurePage),
+  },
+  {
     path: 'factors',
     title: 'Emission factors · openscope',
     loadComponent: () => import('./pages/factors').then((m) => m.FactorsPage),

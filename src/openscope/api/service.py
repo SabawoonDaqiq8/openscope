@@ -23,6 +23,7 @@ from openscope import (
     Inventory,
     Scope3Category,
     __version__,
+    disclosure,
     units,
 )
 from openscope import classify as cl
@@ -466,6 +467,37 @@ class Service:
             inventory_id=inv.id, activities=len(activities), pending_lines=pending
         )
 
+    # -- disclosure ------------------------------------------------------------------------------
+    @staticmethod
+    def _period(row: db.Inventory) -> disclosure.Period:
+        results = [EmissionResult.model_validate(r.result) for r in row.lines]
+        return disclosure.Period(Inventory(results), row.reporting_year, row.gwp_set)
+
+    def disclosure(
+        self,
+        session: Session,
+        row: db.Inventory,
+        *,
+        framework: str,
+        prior_id: int | None,
+        base_id: int | None,
+        net_revenue: float | None,
+        revenue_currency: str | None,
+        ets_share: float | None,
+    ) -> disclosure.Disclosure:
+        prior = self._period(self.get_inventory(session, prior_id)) if prior_id else None
+        base = self._period(self.get_inventory(session, base_id)) if base_id else None
+        return disclosure.build(
+            self._period(row),
+            framework=framework,
+            prior=prior,
+            base=base,
+            net_revenue=net_revenue,
+            revenue_currency=revenue_currency,
+            ets_share=ets_share,
+            calculation_errors=len(row.errors),
+        )
+
     # -- pathways --------------------------------------------------------------------------------
     def pathway(self, row: db.Inventory, scenario: Scenario) -> schemas.PathwayOut:
         results = [EmissionResult.model_validate(r.result) for r in row.lines]
@@ -493,11 +525,22 @@ class Service:
         if acts_file is None or ledger_file is None:
             raise OpenScopeError("Demo data is not available on this server")
 
-        inv = session.scalars(
-            select(db.Inventory).where(db.Inventory.source == "demo").order_by(db.Inventory.id)
-        ).first()
-        if inv is None:
-            inv = self.create_inventory(
+        demo = {
+            r.reporting_year: r
+            for r in session.scalars(select(db.Inventory).where(db.Inventory.source == "demo"))
+        }
+        prior_file = self._demo_file("uk_demo_activities_2024.csv")
+        if 2024 not in demo and prior_file is not None:
+            demo[2024] = self.create_inventory(
+                session,
+                name="Demo: UK company 2024 (DESNZ factors)",
+                source="demo",
+                activities=read_activities(prior_file),
+                gwp_set="AR5",
+                reporting_year=2024,
+            )
+        if 2025 not in demo:
+            demo[2025] = self.create_inventory(
                 session,
                 name="Demo: UK company 2025 (DESNZ factors)",
                 source="demo",
@@ -505,6 +548,7 @@ class Service:
                 gwp_set="AR5",
                 reporting_year=2025,
             )
+        inv = demo[2025]
         run = session.scalars(
             select(db.ClassificationRun).where(db.ClassificationRun.name.like("Demo:%"))
         ).first()
