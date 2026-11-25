@@ -1,5 +1,12 @@
 # openscope
 
+[![CI](https://github.com/SabawoonDaqiq8/openscope/actions/workflows/ci.yml/badge.svg)](https://github.com/SabawoonDaqiq8/openscope/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+![GHG Protocol](https://img.shields.io/badge/GHG%20Protocol-Scope%201%20%7C%202%20%7C%203-2e7d32)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-261230)](https://github.com/astral-sh/ruff)
+![Typed: mypy strict](https://img.shields.io/badge/typed-mypy%20strict-informational)
+
 **Open-source, auditable carbon accounting.** A Python engine for calculating GHG Protocol
 Scope 1, 2 and 3 emissions, where every number can be traced back to its activity data,
 emission factor, unit conversion and GWP.
