@@ -1,0 +1,21 @@
+# openscope bundled sample factors.
+# status=reference    -> transcribed from the cited source; always verify against the latest edition before reporting.
+# status=illustrative -> round placeholder values for demos and tests ONLY. Replace with DESNZ/DEFRA, USEEIO, IEA, eGRID, AIB residual mix etc.
+factor_id,name,activity_unit,co2_kg,ch4_kg,n2o_kg,other_gases,co2e_kg,scope,scope3_category,scope2_method,region,year,source,source_url,status,notes
+EPA-STAT-NATGAS,Natural gas - stationary combustion,MMBtu,53.06,0.001,0.0001,,,1,,,US,2024,US EPA GHG Emission Factors Hub (Table 1),https://www.epa.gov/climateleadership/ghg-emission-factors-hub,reference,Higher heating value basis
+EPA-STAT-DIESEL,Distillate fuel oil No.2 - stationary combustion,MMBtu,73.96,0.003,0.0006,,,1,,,US,2024,US EPA GHG Emission Factors Hub (Table 1),https://www.epa.gov/climateleadership/ghg-emission-factors-hub,reference,Higher heating value basis
+EPA-MOB-DIESEL-CO2,Diesel fuel - mobile combustion (CO2 only),gal,10.21,,,,,1,,,US,2024,US EPA GHG Emission Factors Hub (Table 2),https://www.epa.gov/climateleadership/ghg-emission-factors-hub,reference,CH4/N2O depend on vehicle type and distance; add from Table 3/4
+EPA-MOB-GASOLINE-CO2,Motor gasoline - mobile combustion (CO2 only),gal,8.78,,,,,1,,,US,2024,US EPA GHG Emission Factors Hub (Table 2),https://www.epa.gov/climateleadership/ghg-emission-factors-hub,reference,CH4/N2O depend on vehicle type and distance; add from Table 3/4
+REFRIG-HFC134A,Refrigerant leakage - HFC-134a,kg,,,,HFC-134A=1,,1,,,GLOBAL,,IPCC GWP applied at calculation time,https://www.ipcc.ch/report/ar6/wg1/,reference,1 kg leaked = 1 kg HFC-134a; CO2e depends on GWP set
+REFRIG-R410A,Refrigerant leakage - R-410A (50/50 HFC-32/HFC-125),kg,,,,HFC-32=0.5;HFC-125=0.5,,1,,,GLOBAL,,IPCC GWP applied at calculation time,https://www.ipcc.ch/report/ar6/wg1/,reference,Blend composition by mass
+SCOPE2-EAC-RENEWABLE,Electricity covered by renewable energy attribute certificates,kWh,,,,,0,2,,market_based,GLOBAL,,GHG Protocol Scope 2 Guidance (2015),https://ghgprotocol.org/scope-2-guidance,reference,Only valid if the EAC meets the Scope 2 Quality Criteria
+DEMO-GRID-ELEC-LB,Grid electricity - location-based (illustrative),kWh,,,,,0.4,2,,location_based,DEMO,2024,openscope demo data,,illustrative,Replace with eGRID / IEA / national grid factor
+DEMO-RESIDUAL-MIX-MB,Grid electricity - residual mix market-based (illustrative),kWh,,,,,0.5,2,,market_based,DEMO,2024,openscope demo data,,illustrative,Replace with AIB / Green-e residual mix
+DEMO-SPEND-PROF-SERVICES,Professional services - spend-based (illustrative),USD,,,,,0.1,3,1,,DEMO,2022,openscope demo data,,illustrative,Replace with USEEIO / EXIOBASE factor (mind currency year and margins)
+DEMO-SPEND-IT-EQUIPMENT,Computers and IT equipment - spend-based (illustrative),USD,,,,,0.3,3,2,,DEMO,2022,openscope demo data,,illustrative,Replace with USEEIO / EXIOBASE factor
+DEMO-SPEND-OFFICE-SUPPLIES,Office supplies - spend-based (illustrative),USD,,,,,0.25,3,1,,DEMO,2022,openscope demo data,,illustrative,Replace with USEEIO / EXIOBASE factor
+DEMO-AIR-SHORT-HAUL,Air travel short-haul economy (illustrative),pkm,,,,,0.15,3,6,,DEMO,2024,openscope demo data,,illustrative,Replace with DESNZ factor (with/without radiative forcing - disclose choice)
+DEMO-AIR-LONG-HAUL,Air travel long-haul economy (illustrative),pkm,,,,,0.1,3,6,,DEMO,2024,openscope demo data,,illustrative,Replace with DESNZ factor (with/without radiative forcing - disclose choice)
+DEMO-HOTEL-NIGHT,Hotel stay (illustrative),night,,,,,20,3,6,,DEMO,2024,openscope demo data,,illustrative,Replace with country-specific hotel factor
+DEMO-ROAD-FREIGHT,Road freight HGV average laden (illustrative),tkm,,,,,0.1,3,4,,DEMO,2024,openscope demo data,,illustrative,Replace with DESNZ / GLEC factor
+DEMO-WASTE-LANDFILL,Mixed commercial waste to landfill (illustrative),t,,,,,500,3,5,,DEMO,2024,openscope demo data,,illustrative,Replace with DESNZ waste factor
