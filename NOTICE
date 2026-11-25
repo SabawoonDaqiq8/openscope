@@ -1,0 +1,13 @@
+openscope
+Copyright (c) 2026 Sabawoon Daqiq — MIT License (see LICENSE)
+
+This product includes data from third parties:
+
+* UK Government GHG Conversion Factors for Company Reporting 2025, Department for Energy
+  Security and Net Zero (DESNZ). Contains public sector information licensed under the
+  Open Government Licence v3.0:
+  https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
+  File: src/openscope/factors/data/desnz_2025.csv
+
+* US EPA GHG Emission Factors Hub (selected factors in sample_factors.csv); US federal
+  government works are in the public domain in the United States.

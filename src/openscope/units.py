@@ -63,6 +63,7 @@ _register(
         "bbl": 158.987294928,  # US oil barrel
         "scf": 28.316846592,  # standard cubic foot
         "ccf": 2831.6846592,
+        "million_litres": 1e6,
     },
 )
 
@@ -89,8 +90,14 @@ _register("freight", "tkm", {"ton_mile": 1.459972})  # short ton-mile
 # Passenger transport — base passenger-km
 _register("passenger_distance", "pkm", {"passenger_mile": 1.609344})
 
-# Count-based activity (e.g. hotel nights, units purchased)
-_register("count", "unit", {"night": 1.0, "item": 1.0})
+# Count-based activity (e.g. units purchased)
+_register("count", "unit", {"item": 1.0})
+
+# Accommodation — base room-night
+_register("room_night", "night", {"room_night": 1.0})
+
+# Homeworking — base FTE working hour
+_register("fte_time", "fte_hour", {})
 
 _CURRENCIES = {"USD", "EUR", "GBP", "CHF", "JPY", "CAD", "AUD", "CNY", "INR", "SEK", "NOK", "DKK"}
 

@@ -83,3 +83,35 @@ def test_cli_smoke(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     printed = capsys.readouterr().out
     assert "Scope 2 (market-based)" in printed
     assert out.exists()
+
+
+UK_DEMO = Path(__file__).parent.parent / "examples" / "uk_demo_activities.csv"
+
+
+def test_cli_uk_demo_uses_only_reference_factors(capsys: pytest.CaptureFixture[str]) -> None:
+    rc = main(["calculate", str(UK_DEMO), "--dataset", "desnz-2025", "--gwp", "AR5", "--json"])
+    assert rc == 0
+    import json
+
+    summary = json.loads(capsys.readouterr().out)["summary"]
+    assert summary["illustrative_factor_share"] == 0
+    assert summary["scope2_location_tco2e"] == pytest.approx(850 * 0.177, rel=1e-3)
+    assert summary["scope2_market_fallback_sites"] == ["Warehouse"]
+
+
+def test_cli_datasets_and_fx(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["datasets"]) == 0
+    assert "desnz-2025" in capsys.readouterr().out
+
+    acts = tmp_path / "a.csv"
+    acts.write_text(
+        "activity_id,quantity,unit,scope,scope3_category,factor_id,method,price_year\n"
+        "x,1000,EUR,3,1,DEMO-SPEND-PROF-SERVICES,spend_based,2025\n"
+    )
+    fx = tmp_path / "fx.csv"
+    fx.write_text("year,from,to,rate\n2025,EUR,USD,1.1\n")
+    pi = tmp_path / "pi.csv"
+    pi.write_text("currency,year,index\nUSD,2022,100\nUSD,2025,110\n")
+    assert main(["calculate", str(acts)]) == 1  # EUR vs USD factor without FX -> error
+    rc = main(["calculate", str(acts), "--fx", str(fx), "--price-index", str(pi), "--json"])
+    assert rc == 0

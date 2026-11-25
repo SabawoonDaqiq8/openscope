@@ -83,6 +83,7 @@ class EmissionFactor(BaseModel):
     activity_unit: str
     gases: dict[str, float] = Field(default_factory=dict)
     co2e_kg: float | None = None
+    gwp_basis: str | None = None  # GWP set behind a pre-aggregated co2e_kg, e.g. "AR5"
     scope: Scope | None = None
     scope3_category: Scope3Category | None = None
     scope2_method: Scope2Method | None = None
@@ -116,6 +117,7 @@ class ActivityRecord(BaseModel):
     method: CalculationMethod = CalculationMethod.AVERAGE_DATA
     period_start: date | None = None
     period_end: date | None = None
+    price_year: int | None = None  # year the spend was incurred; defaults to the period's year
     site: str | None = None
     supplier: str | None = None
 
@@ -131,6 +133,13 @@ class ActivityRecord(BaseModel):
             raise ValueError(f"Activity {self.activity_id}: period_end before period_start")
         return self
 
+    @property
+    def spend_year(self) -> int | None:
+        if self.price_year is not None:
+            return self.price_year
+        d = self.period_end or self.period_start
+        return d.year if d else None
+
 
 class EmissionResult(BaseModel):
     """The outcome of applying one factor to one activity, with a full audit trail."""
@@ -140,6 +149,7 @@ class EmissionResult(BaseModel):
     scope3_category: Scope3Category | None
     scope2_method: Scope2Method | None
     method: CalculationMethod
+    site: str | None = None
     factor_id: str
     factor_source: str
     factor_status: FactorStatus

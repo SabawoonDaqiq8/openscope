@@ -1,6 +1,6 @@
 """openscope — open-source, auditable carbon accounting."""
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from openscope.engine import BatchResult, Calculator  # noqa: E402
 from openscope.factors import FactorRegistry  # noqa: E402

@@ -17,6 +17,11 @@ from openscope.models import (
     Scope,
     Scope2Method,
 )
+from openscope.money import SpendNormalisationError, SpendNormaliser
+
+
+def _is_currency(unit: str) -> bool:
+    return units.get_unit(unit).dimension.startswith("currency:")
 
 
 def _fmt(x: float) -> str:
@@ -50,6 +55,10 @@ class Calculator:
         IPCC assessment report used to convert per-gas results to CO2e.
     reporting_year:
         Used for the temporal-representativeness penalty in data-quality scoring.
+    spend_normaliser:
+        FX rates and price indices for adapting spend to a spend-based factor's currency
+        and price year. Without it, currency mismatches are errors and price-year
+        mismatches produce a warning.
     """
 
     def __init__(
@@ -57,10 +66,12 @@ class Calculator:
         registry: FactorRegistry | None = None,
         gwp_set: GWPSet | str = GWPSet.AR6,
         reporting_year: int | None = None,
+        spend_normaliser: SpendNormaliser | None = None,
     ) -> None:
         self.registry = registry if registry is not None else FactorRegistry.bundled()
         self.gwp_set = GWPSet(gwp_set)
         self.reporting_year = reporting_year
+        self.spend_normaliser = spend_normaliser
 
     def calculate(
         self, activity: ActivityRecord, factor: EmissionFactor | None = None
@@ -78,8 +89,11 @@ class Calculator:
         scope2_method = self._resolve_scope2_method(activity, factor)
         self._check_applicability(activity, factor, trace)
 
-        qty = units.convert(activity.quantity, activity.unit, factor.activity_unit)
-        if activity.unit != factor.activity_unit:
+        if _is_currency(activity.unit) and _is_currency(factor.activity_unit):
+            qty = self._normalise_spend(activity, factor, trace)
+        else:
+            qty = units.convert(activity.quantity, activity.unit, factor.activity_unit)
+        if activity.unit != factor.activity_unit and not _is_currency(activity.unit):
             trace.append(
                 f"Converted {_fmt(activity.quantity)} {activity.unit} "
                 f"→ {_fmt(qty)} {factor.activity_unit}"
@@ -102,10 +116,16 @@ class Calculator:
             assert factor.co2e_kg is not None  # guaranteed by model validation
             co2e = qty * factor.co2e_kg
             gas_kg["CO2e"] = co2e
+            basis = factor.gwp_basis or "unspecified"
             trace.append(
                 f"CO2e: {_fmt(qty)} × {_fmt(factor.co2e_kg)} kg CO2e/{factor.activity_unit} "
-                f"= {_fmt(co2e)} kg CO2e (pre-aggregated factor; GWP set fixed by source)"
+                f"= {_fmt(co2e)} kg CO2e (pre-aggregated factor; GWP basis {basis})"
             )
+            if factor.gwp_basis and factor.gwp_basis != self.gwp_set.value and co2e > 0:
+                trace.append(
+                    f"WARNING: factor GWP basis {factor.gwp_basis} differs from inventory "
+                    f"GWP set {self.gwp_set.value}; disclose or replace with per-gas factor"
+                )
 
         dq = quality.score(activity.method, factor, self.reporting_year)
         trace.append(f"Total: {_fmt(co2e)} kg CO2e; data quality {dq}/5 ({activity.method.value})")
@@ -116,6 +136,7 @@ class Calculator:
             scope3_category=activity.scope3_category,
             scope2_method=scope2_method,
             method=activity.method,
+            site=activity.site,
             factor_id=factor.factor_id,
             factor_source=factor.source,
             factor_status=factor.status,
@@ -140,6 +161,39 @@ class Calculator:
                 batch.errors.append(CalculationError(a.activity_id, str(exc)))
         return batch
 
+    def _normalise_spend(
+        self, activity: ActivityRecord, factor: EmissionFactor, trace: list[str]
+    ) -> float:
+        spend_ccy = units.get_unit(activity.unit).symbol
+        factor_ccy = units.get_unit(factor.activity_unit).symbol
+        spend_year, factor_year = activity.spend_year, factor.year
+        same_ccy = spend_ccy == factor_ccy
+        same_year = spend_year is None or factor_year is None or spend_year == factor_year
+
+        if same_ccy and same_year:
+            return activity.quantity
+        if self.spend_normaliser is None:
+            if not same_ccy:
+                raise SpendNormalisationError(
+                    f"Activity {activity.activity_id} is in {spend_ccy} but factor "
+                    f"{factor.factor_id} is per {factor_ccy}; provide exchange rates"
+                )
+            trace.append(
+                f"WARNING: spend year {spend_year} differs from factor price year "
+                f"{factor_year}; no price index supplied, so inflation is not removed"
+            )
+            return activity.quantity
+        if spend_year is None or factor_year is None:
+            raise SpendNormalisationError(
+                f"Activity {activity.activity_id}: spend year and factor price year are "
+                "both needed to normalise spend (set price_year or period dates)"
+            )
+        qty, steps = self.spend_normaliser.normalise(
+            activity.quantity, spend_ccy, spend_year, factor_ccy, factor_year
+        )
+        trace.extend(steps)
+        return qty
+
     # -- validation helpers ------------------------------------------------------
     @staticmethod
     def _resolve_scope2_method(
@@ -159,7 +213,8 @@ class Calculator:
     def _check_applicability(
         activity: ActivityRecord, factor: EmissionFactor, trace: list[str]
     ) -> None:
-        if not units.is_compatible(activity.unit, factor.activity_unit):
+        both_currency = _is_currency(activity.unit) and _is_currency(factor.activity_unit)
+        if not both_currency and not units.is_compatible(activity.unit, factor.activity_unit):
             raise FactorError(
                 f"Activity {activity.activity_id} unit '{activity.unit}' is incompatible with "
                 f"factor {factor.factor_id} unit '{factor.activity_unit}'"
