@@ -5,7 +5,7 @@ supplier-specific…) can be versioned, diffed and reviewed like code.
 
 CSV columns
 -----------
-factor_id, name, activity_unit, co2_kg, ch4_kg, n2o_kg, other_gases, co2e_kg,
+factor_id, name, activity_unit, co2_kg, ch4_kg, n2o_kg, other_gases, co2e_kg, gwp_basis,
 scope, scope3_category, scope2_method, region, year, source, source_url, status, notes
 
 ``other_gases`` is a ``;``-separated list of ``GAS=kg`` pairs, e.g. ``HFC-134A=1``.
@@ -23,6 +23,60 @@ from openscope.errors import FactorError
 from openscope.models import EmissionFactor, FactorStatus, Scope, Scope2Method, Scope3Category
 
 _BUNDLED = "sample_factors.csv"
+_DATASETS = {
+    "sample": _BUNDLED,
+    "desnz-2025": "desnz_2025.csv",
+}
+
+
+CSV_COLUMNS = [
+    "factor_id",
+    "name",
+    "activity_unit",
+    "co2_kg",
+    "ch4_kg",
+    "n2o_kg",
+    "other_gases",
+    "co2e_kg",
+    "gwp_basis",
+    "scope",
+    "scope3_category",
+    "scope2_method",
+    "region",
+    "year",
+    "source",
+    "source_url",
+    "status",
+    "notes",
+]
+
+
+def _num(x: float | None) -> str:
+    return "" if x is None else f"{x:.10g}"
+
+
+def _to_row(f: EmissionFactor) -> dict[str, str]:
+    other = ";".join(f"{g}={_num(v)}" for g, v in f.gases.items() if g not in ("CO2", "CH4", "N2O"))
+    return {
+        "factor_id": f.factor_id,
+        "name": f.name,
+        "activity_unit": f.activity_unit,
+        "co2_kg": _num(f.gases.get("CO2")),
+        "ch4_kg": _num(f.gases.get("CH4")),
+        "n2o_kg": _num(f.gases.get("N2O")),
+        "other_gases": other,
+        "co2e_kg": _num(f.co2e_kg),
+        "gwp_basis": f.gwp_basis or "",
+        "scope": str(int(f.scope)) if f.scope else "",
+        "scope3_category": str(int(f.scope3_category)) if f.scope3_category else "",
+        "scope2_method": f.scope2_method.value if f.scope2_method else "",
+        "region": f.region,
+        "year": str(f.year) if f.year else "",
+        "source": f.source,
+        "source_url": f.source_url or "",
+        "status": f.status.value,
+        "notes": f.notes or "",
+    }
 
 
 def _opt(row: dict[str, str], key: str) -> str | None:
@@ -52,6 +106,7 @@ def _parse_row(row: dict[str, str], line: int, origin: str) -> EmissionFactor:
             activity_unit=row["activity_unit"].strip(),
             gases=gases,
             co2e_kg=float(co2e) if co2e else None,
+            gwp_basis=_opt(row, "gwp_basis"),
             scope=Scope(int(scope)) if scope else None,
             scope3_category=Scope3Category(int(cat)) if cat else None,
             scope2_method=Scope2Method(s2) if s2 else None,
@@ -87,6 +142,20 @@ class FactorRegistry:
         ref = resources.files("openscope.factors.data").joinpath(_BUNDLED)
         with ref.open("r", encoding="utf-8") as fh:
             return cls(cls._read(fh, _BUNDLED))
+
+    @classmethod
+    def dataset(cls, name: str) -> FactorRegistry:
+        """Load a published dataset bundled with openscope, e.g. ``"desnz-2025"``."""
+        file = _DATASETS.get(name.lower())
+        if file is None:
+            raise FactorError(f"Unknown dataset '{name}'. Available: {sorted(_DATASETS)}")
+        ref = resources.files("openscope.factors.data").joinpath(file)
+        with ref.open("r", encoding="utf-8") as fh:
+            return cls(cls._read(fh, file))
+
+    @staticmethod
+    def available_datasets() -> list[str]:
+        return sorted(_DATASETS)
 
     @staticmethod
     def _read(fh: Iterable[str], origin: str) -> Iterator[EmissionFactor]:
@@ -134,6 +203,17 @@ class FactorRegistry:
                 continue
             out.append(f)
         return out
+
+    def to_csv(self, path: str | Path, header_comment: str | None = None) -> None:
+        """Write factors in openscope's CSV format (round-trips with :meth:`from_csv`)."""
+        with Path(path).open("w", newline="", encoding="utf-8") as fh:
+            if header_comment:
+                for line in header_comment.splitlines():
+                    fh.write(f"# {line}\n")
+            writer = csv.DictWriter(fh, fieldnames=CSV_COLUMNS, lineterminator="\n")
+            writer.writeheader()
+            for f in self:
+                writer.writerow(_to_row(f))
 
     def __iter__(self) -> Iterator[EmissionFactor]:
         return iter(self._factors.values())

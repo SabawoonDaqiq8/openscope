@@ -1,0 +1,241 @@
+"""Importer for the UK Government GHG Conversion Factors for Company Reporting (DESNZ).
+
+Reads the official **flat-format** workbook published each June at
+https://www.gov.uk/government/collections/government-conversion-factors-for-company-reporting
+and converts it into openscope :class:`~openscope.models.EmissionFactor` objects.
+
+Format notes (verified against the 2025 flat file, v1):
+
+* Sheet ``Factors by Category``; a header row starting with ``ID`` (row 6 in 2025).
+* Columns: ``ID, Scope, Level 1, Level 2, Level 3, Level 4, Column Text, UOM, GHG/Unit,
+  GHG Conversion Factor <year>``.
+* One logical factor = several rows sharing an ID prefix (``<prefix>_<n>``). ``GHG/Unit`` is
+  ``kg CO2e`` (total) or ``kg CO2e of CO2|CH4|N2O per unit`` (per-gas, **already
+  GWP-weighted**). Rows in ``kWh (Net CV)`` / ``kWh (net)`` are energy conversions and skipped.
+* Blank value cells mean DESNZ publishes no factor for that combination; they are skipped.
+* GWPs: AR5 (CH4 = 28, N2O = 265) for almost all factors; WTT-bioenergy remains AR4; a few
+  refrigerants use AR6 where AR5 is unavailable (2025 methodology paper, §1.7 and Table 1).
+
+Because the GWP basis is known, per-gas CO2e values are converted back to **kg of gas**
+(CO2e / GWP_AR5). openscope can then re-weight DESNZ factors under AR6. If the per-gas values
+don't reconcile with the published total (more than 0.5% apart), the total is used as-is.
+"""
+
+from __future__ import annotations
+
+import re
+from collections import defaultdict
+from collections.abc import Iterable, Iterator, Sequence
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
+from openscope.errors import FactorError
+from openscope.gwp import GWPSet, gwp
+from openscope.models import EmissionFactor, FactorStatus, Scope, Scope2Method, Scope3Category
+
+SOURCE_URL = (
+    "https://www.gov.uk/government/collections/government-conversion-factors-for-company-reporting"
+)
+SHEET = "Factors by Category"
+RECONCILE_TOLERANCE = 0.005
+
+_UOM_MAP: dict[str, str] = {
+    "km": "km",
+    "miles": "mi",
+    "tonne.km": "tkm",
+    "tonnes": "t",
+    "kg": "kg",
+    "passenger.km": "pkm",
+    "litres": "L",
+    "kwh": "kWh",
+    "kwh (net cv)": "kWh",
+    "kwh (gross cv)": "kWh",
+    "room per night": "night",
+    "gj": "GJ",
+    "cubic metres": "m3",
+    "per fte working hour": "fte_hour",
+    "million litres": "million_litres",
+}
+
+_SCOPE_MAP = {"scope 1": Scope.SCOPE_1, "scope 2": Scope.SCOPE_2, "scope 3": Scope.SCOPE_3}
+
+# Only unambiguous Level 1 -> Scope 3 category mappings. Ambiguous ones (e.g. freight can be
+# category 4 or 9, managed assets 8 or 13) are left blank; the user's activity decides.
+_CATEGORY_MAP: dict[str, Scope3Category] = {
+    "business travel- air": Scope3Category.BUSINESS_TRAVEL,
+    "business travel- land": Scope3Category.BUSINESS_TRAVEL,
+    "business travel- sea": Scope3Category.BUSINESS_TRAVEL,
+    "wtt- business travel- air": Scope3Category.BUSINESS_TRAVEL,
+    "wtt- business travel- sea": Scope3Category.BUSINESS_TRAVEL,
+    "hotel stay": Scope3Category.BUSINESS_TRAVEL,
+    "wtt- fuels": Scope3Category.FUEL_AND_ENERGY_RELATED,
+    "wtt- bioenergy": Scope3Category.FUEL_AND_ENERGY_RELATED,
+    "wtt- uk electricity": Scope3Category.FUEL_AND_ENERGY_RELATED,
+    "wtt- heat and steam": Scope3Category.FUEL_AND_ENERGY_RELATED,
+    "transmission and distribution": Scope3Category.FUEL_AND_ENERGY_RELATED,
+    "uk electricity t&d for evs": Scope3Category.FUEL_AND_ENERGY_RELATED,
+    "waste disposal": Scope3Category.WASTE,
+    "water treatment": Scope3Category.WASTE,
+    "water supply": Scope3Category.PURCHASED_GOODS_AND_SERVICES,
+    "material use": Scope3Category.PURCHASED_GOODS_AND_SERVICES,
+    "homeworking": Scope3Category.EMPLOYEE_COMMUTING,
+}
+
+_GAS_RE = re.compile(r"kg co2e of (co2|ch4|n2o) per unit", re.I)
+
+
+@dataclass
+class _Group:
+    meta: tuple[Any, ...]  # (scope, l1, l2, l3, l4, column_text, uom)
+    total: float | None = None
+    gases_co2e: dict[str, float] = field(default_factory=dict)
+
+
+@dataclass
+class ImportReport:
+    factors: list[EmissionFactor]
+    skipped_energy_rows: int = 0
+    skipped_unknown_unit: dict[str, int] = field(default_factory=dict)
+    per_gas: int = 0
+    total_only: int = 0
+
+
+def _gwp_basis(level1: str) -> str:
+    return "AR4" if level1.strip().lower() == "wtt- bioenergy" else "AR5"
+
+
+def _clean(v: Any) -> str:
+    return "" if v is None else str(v).strip()
+
+
+def _find_header(rows: Iterator[Sequence[Any]]) -> tuple[list[str], Iterator[Sequence[Any]]]:
+    for row in rows:
+        if row and _clean(row[0]) == "ID":
+            return [_clean(c) for c in row], rows
+    raise FactorError(f"DESNZ: header row starting with 'ID' not found in sheet '{SHEET}'")
+
+
+def parse_rows(rows: Iterable[Sequence[Any]], year: int) -> ImportReport:
+    """Parse flat-file rows (including preamble and header) into factors."""
+    header, body = _find_header(iter(rows))
+    try:
+        idx = {name: header.index(name) for name in ("ID", "Scope", "UOM", "GHG/Unit")}
+        idx["L1"] = header.index("Level 1")
+        value_col = next(i for i, h in enumerate(header) if h.startswith("GHG Conversion Factor"))
+    except (ValueError, StopIteration) as exc:
+        raise FactorError(f"DESNZ: unexpected header layout: {header}") from exc
+
+    groups: dict[str, _Group] = {}
+    report = ImportReport(factors=[])
+    for row in body:
+        rid = _clean(row[idx["ID"]])
+        if not rid or rid.upper() == "END" or "_" not in rid:
+            continue
+        ghg_unit = _clean(row[idx["GHG/Unit"]]).lower()
+        value = row[value_col]
+        if value is None or value == "":
+            continue
+        prefix = rid.rsplit("_", 1)[0]
+        meta = tuple(_clean(row[i]) for i in range(idx["Scope"], idx["Scope"] + 6)) + (
+            _clean(row[idx["UOM"]]),
+        )
+        if ghg_unit.startswith("kwh"):
+            report.skipped_energy_rows += 1
+            continue
+        g = groups.setdefault(prefix, _Group(meta))
+        if ghg_unit == "kg co2e":
+            g.total = float(value)
+        elif m := _GAS_RE.fullmatch(ghg_unit):
+            g.gases_co2e[m.group(1).upper()] = float(value)
+
+    unknown: dict[str, int] = defaultdict(int)
+    for prefix, g in groups.items():
+        factor = _to_factor(prefix, g, year, report)
+        if factor is None:
+            unknown[g.meta[6]] += 1
+        else:
+            report.factors.append(factor)
+    report.skipped_unknown_unit = dict(unknown)
+    return report
+
+
+def _to_factor(prefix: str, g: _Group, year: int, report: ImportReport) -> EmissionFactor | None:
+    scope_txt, l1, l2, l3, l4, col_text, uom = g.meta
+    unit = _UOM_MAP.get(uom.lower())
+    if unit is None:
+        return None
+
+    basis = _gwp_basis(l1)
+    total = g.total if g.total is not None else sum(g.gases_co2e.values())
+    gases: dict[str, float] = {}
+    if basis == "AR5" and set(g.gases_co2e) == {"CO2", "CH4", "N2O"}:
+        recon = sum(g.gases_co2e.values())
+        if total == 0 or abs(recon - total) / total <= RECONCILE_TOLERANCE:
+            gases = {gas: v / gwp(gas, GWPSet.AR5) for gas, v in g.gases_co2e.items()}
+
+    descr = [p for p in (l1, l2, l3, l4, col_text) if p]
+    if uom.lower() in ("kwh (net cv)", "kwh (gross cv)"):
+        descr.append(uom.split("(")[1].rstrip(")"))  # keep the calorific-value basis visible
+    breakdown = ", ".join(f"{k}={v:g}" for k, v in sorted(g.gases_co2e.items()))
+    notes = f"DESNZ ID {prefix}; GWP basis {basis}"
+    if breakdown:
+        notes += f"; published per-gas kg CO2e: {breakdown}"
+    if l1.lower().startswith("refrigerant"):
+        notes += "; a few refrigerant GWPs use AR6 where AR5 is unavailable"
+
+    scope = _SCOPE_MAP.get(scope_txt.lower())
+    if gases:
+        report.per_gas += 1
+    else:
+        report.total_only += 1
+
+    return EmissionFactor(
+        factor_id=f"DESNZ-{year}-{prefix}",
+        name=" / ".join(descr),
+        activity_unit=unit,
+        gases=gases,
+        co2e_kg=None if gases else total,
+        gwp_basis=None if gases else basis,
+        scope=scope,
+        scope2_method=(
+            Scope2Method.LOCATION_BASED
+            if scope == Scope.SCOPE_2 and "electricity" in l1.lower()
+            else None
+        ),
+        scope3_category=_CATEGORY_MAP.get(l1.lower()),
+        region="UK",
+        year=year,
+        source=f"UK Government GHG Conversion Factors for Company Reporting {year} (DESNZ)",
+        source_url=SOURCE_URL,
+        status=FactorStatus.REFERENCE,
+        notes=notes,
+    )
+
+
+def read_workbook(path: str | Path, year: int | None = None) -> ImportReport:
+    """Parse a DESNZ flat-format ``.xlsx``. Requires ``pip install openscope[importers]``."""
+    try:
+        import openpyxl
+    except ImportError as exc:  # pragma: no cover - exercised only without the extra
+        raise FactorError(
+            "Reading .xlsx needs openpyxl: pip install 'openscope[importers]'"
+        ) from exc
+
+    wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
+    try:
+        if SHEET not in wb.sheetnames:
+            raise FactorError(f"DESNZ: sheet '{SHEET}' not found in {path}")
+        if year is None:
+            year = _detect_year(wb)
+        return parse_rows(wb[SHEET].iter_rows(values_only=True), year)
+    finally:
+        wb.close()
+
+
+def _detect_year(wb: Any) -> int:
+    for row in wb[SHEET].iter_rows(max_row=10, values_only=True):
+        for cell in row:
+            if m := re.search(r"GHG Conversion Factor (\d{4})", _clean(cell)):
+                return int(m.group(1))
+    raise FactorError("DESNZ: could not detect the factor year; pass year explicitly")

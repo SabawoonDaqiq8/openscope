@@ -26,18 +26,34 @@ class Inventory:
     def scope1_t(self) -> float:
         return self._sum(r for r in self.results if r.scope == Scope.SCOPE_1)
 
+    def _scope2(self, method: Scope2Method) -> list[EmissionResult]:
+        return [r for r in self.results if r.scope == Scope.SCOPE_2 and r.scope2_method == method]
+
+    def scope2_market_fallback_sites(self) -> list[str]:
+        """Sites with location-based but no market-based data.
+
+        Per the GHG Protocol Scope 2 Guidance hierarchy, when no contractual instrument,
+        supplier-specific or residual-mix factor is available, the grid-average
+        (location-based) factor is used for the market-based figure.
+        """
+        mb_sites = {r.site for r in self._scope2(Scope2Method.MARKET_BASED)}
+        lb_sites = {r.site for r in self._scope2(Scope2Method.LOCATION_BASED)}
+        return sorted(s or "(no site)" for s in lb_sites - mb_sites)
+
+    def _scope2_market_results(self) -> list[EmissionResult]:
+        mb = self._scope2(Scope2Method.MARKET_BASED)
+        mb_sites = {r.site for r in mb}
+        fallback = [r for r in self._scope2(Scope2Method.LOCATION_BASED) if r.site not in mb_sites]
+        return mb + fallback
+
     def scope2_t(self, method: Scope2Method = Scope2Method.LOCATION_BASED) -> float:
-        return self._sum(
-            r for r in self.results if r.scope == Scope.SCOPE_2 and r.scope2_method == method
-        )
+        """Scope 2 total. Market-based includes grid-average fallback for uncovered sites."""
+        if method == Scope2Method.MARKET_BASED:
+            return self._sum(self._scope2_market_results())
+        return self._sum(self._scope2(method))
 
     def has_market_based(self) -> bool:
         return any(r.scope2_method == Scope2Method.MARKET_BASED for r in self.results)
-
-    def _headline_scope2_method(self) -> Scope2Method:
-        if self.has_market_based():
-            return Scope2Method.MARKET_BASED
-        return Scope2Method.LOCATION_BASED
 
     def scope3_t(self) -> float:
         return self._sum(r for r in self.results if r.scope == Scope.SCOPE_3)
@@ -49,17 +65,14 @@ class Inventory:
                 out[r.scope3_category] += r.co2e_kg / 1000
         return dict(sorted(out.items()))
 
-    def total_t(self, scope2_method: Scope2Method | None = None) -> float:
-        """Scope 1 + 2 + 3. Defaults to market-based Scope 2 when available."""
-        if scope2_method is None:
-            scope2_method = self._headline_scope2_method()
+    def total_t(self, scope2_method: Scope2Method = Scope2Method.MARKET_BASED) -> float:
+        """Scope 1 + 2 + 3, using market-based Scope 2 (with fallback) unless told otherwise."""
         return self.scope1_t() + self.scope2_t(scope2_method) + self.scope3_t()
 
     # -- analysis -----------------------------------------------------------------
     def headline_results(self) -> list[EmissionResult]:
-        """Results that make up :meth:`total_t` — i.e. one Scope 2 method only, no double count."""
-        s2 = self._headline_scope2_method()
-        return [r for r in self.results if r.scope != Scope.SCOPE_2 or r.scope2_method == s2]
+        """Results that make up :meth:`total_t`: market-based Scope 2, no double counting."""
+        return [r for r in self.results if r.scope != Scope.SCOPE_2] + self._scope2_market_results()
 
     def hotspots(self, n: int = 10) -> list[EmissionResult]:
         """Largest individual line items contributing to the headline total."""
@@ -79,11 +92,8 @@ class Inventory:
         return {
             "scope1_tco2e": round(self.scope1_t(), 3),
             "scope2_location_tco2e": round(self.scope2_t(Scope2Method.LOCATION_BASED), 3),
-            "scope2_market_tco2e": (
-                round(self.scope2_t(Scope2Method.MARKET_BASED), 3)
-                if self.has_market_based()
-                else None
-            ),
+            "scope2_market_tco2e": round(self.scope2_t(Scope2Method.MARKET_BASED), 3),
+            "scope2_market_fallback_sites": self.scope2_market_fallback_sites(),
             "scope3_tco2e": round(self.scope3_t(), 3),
             "scope3_by_category_tco2e": {
                 f"{c.value}. {c.label}": round(v, 3) for c, v in self.scope3_by_category_t().items()

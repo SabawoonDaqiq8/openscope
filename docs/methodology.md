@@ -28,12 +28,36 @@ emissions (kg CO2e) = Σ_gas  activity_quantity × factor_gas (kg gas / unit) ×
 ## Scope 2
 
 Location-based and market-based results are calculated from separate activity rows and
-reported separately (dual reporting). The headline total uses market-based Scope 2 when any
-market-based data exists, otherwise location-based.
+reported separately (dual reporting). The headline total uses market-based Scope 2.
 
-*Current limitation:* if market-based data exists for some sites but not others, the
-market-based total does not yet fall back to residual-mix or grid-average factors for the
-uncovered sites. That fallback is planned.
+**Market-based fallback.** The Scope 2 Guidance hierarchy runs: energy attribute
+certificates or contracts → supplier-specific rate → residual mix → grid average. For any
+site with location-based rows but no market-based rows, openscope uses the location-based
+(grid-average) result in the market-based total and lists the site in
+`scope2_market_fallback_sites`. If a residual-mix factor is available, supply market-based
+rows using it, because the grid average double counts renewable attributes already claimed by
+others. Sites are matched on the `site` field.
+
+## Factor datasets and GWP basis
+
+UK DESNZ conversion factors publish per-gas values as kg CO2e using AR5 GWPs (CH4 = 28,
+N2O = 265; 2025 methodology paper §1.7). Where CO2, CH4 and N2O components are all present
+and reconcile with the published total within 0.5%, openscope stores them as gas masses
+(`kg CO2e of gas / GWP_AR5`), so they can be re-weighted under any GWP set. Otherwise the
+total is stored with its `gwp_basis`: AR5, or AR4 for well-to-tank bioenergy (methodology
+paper Table 1). Some refrigerants use AR6 GWPs where AR5 values do not exist.
+
+## Spend-based factors
+
+```
+amount_in_factor_terms = amount × FX(spend currency → factor currency, spend year)
+                                × index(factor currency, factor year) / index(…, spend year)
+```
+
+The spend year is `price_year`, or else the year of `period_end` / `period_start`. The
+factor's `year` is taken as its price year. Without a normaliser, different currencies are an
+error and different years produce a warning. Margins (purchaser vs basic prices) are not
+adjusted.
 
 ## Scope 3
 

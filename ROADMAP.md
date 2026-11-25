@@ -6,10 +6,14 @@
 - Scope 2 dual reporting, Scope 3 categories, data-quality scoring
 - CLI + audit trail, CI, tests
 
-## v0.2 — Real factor datasets
-- Importers for UK DESNZ/DEFRA conversion factors, US EPA Emission Factors Hub, USEEIO
-- Spend-based factor helpers: currency + price-year normalisation (FX, inflation/deflators)
-- Market-based Scope 2 fallback to residual mix for uncovered sites
+## v0.2 — Real factor datasets ✅
+- DESNZ flat-file importer + bundled DESNZ 2025 dataset (2,672 factors, AR6-recalculable)
+- Spend normalisation: FX + price-year deflation with full trace
+- Market-based Scope 2 fallback to grid average for uncovered sites
+- UK demo inventory built only on reference factors
+
+## v0.2.x — More datasets
+- US EPA GHG Emission Factors Hub, USEEIO (spend-based), residual-mix factors
 
 ## v0.3 — AI-assisted Scope 3 spend classifier (flagship)
 - Upload a general-ledger export → map each line to a Scope 3 category and factor
