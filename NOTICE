@@ -9,5 +9,10 @@ This product includes data from third parties:
   https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
   File: src/openscope/factors/data/desnz_2025.csv
 
+* US EPA Supply Chain Greenhouse Gas Emission Factors v1.3.0 by NAICS-6, U.S. EPA Office of
+  Research and Development, https://doi.org/10.23719/1531143. U.S. Government work, public
+  domain (https://pasteur.epa.gov/license/sciencehub-license.html).
+  File: src/openscope/factors/data/useeio_1_3.csv
+
 * US EPA GHG Emission Factors Hub (selected factors in sample_factors.csv); US federal
   government works are in the public domain in the United States.

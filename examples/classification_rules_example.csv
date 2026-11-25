@@ -1,5 +1,5 @@
 # Example company-specific rules: your chart of accounts encodes a lot of knowledge.
 rule_id,field,pattern,decision,scope3_category,factor_id,note
 ENERGY-S1S2,account_name,^utilities|vehicle fuel,exclude,,,Scope 1/2 energy: report from kWh / litres activity data instead
-TRAVEL-AIR,account_name,travel - airfare,classify,6,DEMO-SPEND-AIR-TRAVEL,Airfare GL account
-TRAVEL-HOTEL,account_name,travel - accommodation,classify,6,DEMO-SPEND-HOTEL,Accommodation GL account
+TRAVEL-AIR,account_name,travel - airfare,classify,6,USEEIO-1.3-481111,Airfare GL account (EPA: scheduled passenger air transportation)
+TRAVEL-HOTEL,account_name,travel - accommodation,classify,6,USEEIO-1.3-721110,Accommodation GL account (EPA: hotels and motels)

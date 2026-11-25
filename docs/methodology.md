@@ -47,6 +47,23 @@ and reconcile with the published total within 0.5%, openscope stores them as gas
 total is stored with its `gwp_basis`: AR5, or AR4 for well-to-tank bioenergy (methodology
 paper Table 1). Some refrigerants use AR6 GWPs where AR5 values do not exist.
 
+### US EPA supply chain factors (USEEIO)
+
+`useeio-1.3` is imported from EPA's per-gas file, with margins, in 2022 USD purchaser prices.
+Each commodity's AR5 total is reconciled against EPA's published CO2e file (EPA uses AR5 with
+CH4 = 28). Within 0.0006 kg/USD or 0.5%, the per-gas masses are kept (1,005 commodities). The
+other 11 differ by 0.5–0.7% because of the 3-significant-figure rounding of the per-gas values,
+and use the published total. EPA's "HFCs and PFCs, unspecified" group is published only as CO2e
+and is kept as a fixed `CO2E` component. Methane is not split into fossil and biogenic, so it is
+treated as fossil under AR6, which is conservative.
+
+### GWP values
+
+AR5 values are IPCC AR5 WG1 Table 8.A.1 (no climate-carbon feedbacks); AR6 values are IPCC AR6
+WG1 Table 7.15 (CH4 fossil 29.8 / non-fossil 27.0) and Table 7.SM.7 for the other gases. The
+table was cross-checked against openclimatedata/globalwarmingpotentials, which reads the IPCC
+supplementary data. The AR5 values also reproduce EPA's published CO2e factors.
+
 ## Spend-based factors
 
 ```

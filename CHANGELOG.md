@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.5.0
+### Added
+- Bundled `useeio-1.3` dataset: US EPA Supply Chain GHG Emission Factors v1.3.0 (1,016 NAICS-6
+  spend-based factors, kg per gas per 2022 USD), reconciled against EPA's published CO2e
+- `openscope import-useeio` importer
+- GWPs for all gases in the EPA dataset (HFC-23, HFC-143a, HFC-236fa, CF4, C2F6, C3F8, c-C4F8,
+  C4F10, C6F14) and a `CO2E` pseudo-gas for components published only as CO2e
+- The API serves `desnz-2025` and `useeio-1.3` by default; the demo's classification rules use
+  real EPA factors, so the demo no longer depends on illustrative spend factors
+- Searchable factor picker in the review queue; gzip responses
+
+### Fixed
+- SF6 AR6 GWP corrected from 24,300 to 25,200 (IPCC AR6 WG1 Table 7.SM.7)
+
+### Changed
+- The classifier's response schema lists factor ids as an enum only for catalogues of up to 200
+  factors; larger catalogues use a string, still validated against the registry
+
 ## 0.4.1
 ### Added
 - Public demo mode (`OPENSCOPE_PUBLIC_DEMO=1`): demo data loaded at startup, banner warning

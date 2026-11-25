@@ -17,7 +17,7 @@ def _paths(value: str | None) -> list[Path]:
 class Settings:
     """
     OPENSCOPE_DB_URL        SQLAlchemy URL            (default: sqlite:///./openscope.db)
-    OPENSCOPE_DATASETS      bundled factor datasets   (default: desnz-2025)
+    OPENSCOPE_DATASETS      bundled factor datasets   (default: desnz-2025,useeio-1.3)
     OPENSCOPE_FACTOR_FILES  extra factor CSVs, comma-separated
     OPENSCOPE_RULE_FILES    extra classification rule CSVs, comma-separated
     OPENSCOPE_DEMO_DIR      folder with demo data     (default: the repo's examples/)
@@ -30,7 +30,7 @@ class Settings:
     """
 
     db_url: str = "sqlite:///./openscope.db"
-    datasets: list[str] = field(default_factory=lambda: ["desnz-2025"])
+    datasets: list[str] = field(default_factory=lambda: ["desnz-2025", "useeio-1.3"])
     factor_files: list[Path] = field(default_factory=list)
     rule_files: list[Path] = field(default_factory=list)
     demo_dir: Path | None = None
@@ -51,7 +51,7 @@ class Settings:
             db_url=env.get("OPENSCOPE_DB_URL", cls.db_url),
             datasets=[
                 d.strip()
-                for d in env.get("OPENSCOPE_DATASETS", "desnz-2025").split(",")
+                for d in env.get("OPENSCOPE_DATASETS", "desnz-2025,useeio-1.3").split(",")
                 if d.strip()
             ],
             factor_files=_paths(env.get("OPENSCOPE_FACTOR_FILES")),
@@ -71,12 +71,9 @@ class Settings:
         return s
 
     def add_demo_defaults(self) -> None:
-        """When demo data is available, load its illustrative spend factors and rules too."""
+        """When demo data is available, load its example classification rules too."""
         if self.demo_dir is None:
             return
-        spend = self.demo_dir / "spend_factors_example.csv"
         rules = self.demo_dir / "classification_rules_example.csv"
-        if spend.is_file() and spend not in self.factor_files:
-            self.factor_files.append(spend)
         if rules.is_file() and rules not in self.rule_files:
             self.rule_files.append(rules)

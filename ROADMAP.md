@@ -12,9 +12,6 @@
 - Market-based Scope 2 fallback to grid average for uncovered sites
 - UK demo inventory built only on reference factors
 
-## v0.2.x — More datasets
-- US EPA GHG Emission Factors Hub, USEEIO (spend-based), residual-mix factors
-
 ## v0.3 — AI-assisted Scope 3 spend classifier (flagship) ✅
 - Ledger import with ERP column aliases
 - Rules → supplier memory → Claude (schema-constrained, batched, prompt-cached) → review
@@ -24,7 +21,6 @@
 ## v0.3.x
 - Live benchmark on a larger labelled ledger; threshold calibration report
 - Message Batches API for large ledgers (50% cost)
-- USEEIO spend-factor importer
 
 ## v0.4 — API & dashboard ✅
 - FastAPI service (OpenAPI docs), SQLAlchemy persistence (SQLite; Postgres-ready)
@@ -36,9 +32,16 @@
 - Authentication and multi-tenant workspaces
 - Supplier engagement view (top suppliers by emissions, data-quality upgrade targets)
 
-## v0.5 — Decarbonization pathways
+## v0.5 — US EPA spend-based factors ✅
+- USEEIO v1.3 supply chain factors (1,016 NAICS-6 commodities), per gas, reconciled with EPA
+- Complete AR5/AR6 GWP table for the gases in the dataset
+
+## v0.6 — Decarbonization pathways
 - Abatement levers, marginal abatement cost curve, Monte Carlo uncertainty
 - Target trajectories (absolute contraction) vs. baseline
+
+## Later datasets
+- US EPA GHG Emission Factors Hub (full), residual-mix factors (AIB, Green-e)
 
 ## Later
 - ESRS E1 / IFRS S2 disclosure exports

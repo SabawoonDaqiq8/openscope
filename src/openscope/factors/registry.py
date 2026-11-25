@@ -26,6 +26,7 @@ _BUNDLED = "sample_factors.csv"
 _DATASETS = {
     "sample": _BUNDLED,
     "desnz-2025": "desnz_2025.csv",
+    "useeio-1.3": "useeio_1_3.csv",
 }
 
 

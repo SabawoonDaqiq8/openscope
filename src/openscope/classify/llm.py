@@ -3,9 +3,10 @@
 Design choices:
 
 * **Batched**: many lines per request; results are keyed by ``line_id``, never by position.
-* **Constrained output**: a JSON schema (``output_config.format``) whose enums contain only
-  the Scope 3 categories and the factor ids actually present in the registry, so the model
-  cannot invent a factor.
+* **Constrained output**: a JSON schema (``output_config.format``) with the Scope 3
+  categories as an enum. Factor ids are an enum too for small catalogues; for large ones
+  (e.g. 1,000+ USEEIO commodities) they are a string, and any id not in the registry is
+  dropped in code, so a made-up factor can never be used.
 * **Prompt caching**: the system prompt (instructions, category guide, factor catalogue) is
   identical across batches and is cached; only the batch of lines varies.
 * **Low effort**: classification does not benefit much from deep reasoning; effort is
@@ -93,7 +94,15 @@ def _catalogue(factors: Sequence[EmissionFactor]) -> str:
     return "\n".join(rows)
 
 
+MAX_ENUM = 200  # beyond this, keep the schema small and validate factor ids in code
+
+
 def _schema(factor_ids: Sequence[str]) -> dict[str, Any]:
+    factor_schema: dict[str, Any] = {"type": "string"}
+    if len(factor_ids) <= MAX_ENUM:
+        factor_schema["enum"] = ["", *sorted(factor_ids)]
+    else:
+        factor_schema["description"] = "A factor_id from the catalogue, or empty"
     return {
         "type": "object",
         "properties": {
@@ -109,7 +118,7 @@ def _schema(factor_ids: Sequence[str]) -> dict[str, Any]:
                             "enum": [0, *range(1, 16)],
                             "description": "0 when decision is exclude or unsure",
                         },
-                        "factor_id": {"type": "string", "enum": ["", *sorted(factor_ids)]},
+                        "factor_id": factor_schema,
                         "confidence": {"type": "number"},
                         "rationale": {"type": "string"},
                     },

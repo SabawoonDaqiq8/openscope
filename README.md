@@ -11,9 +11,10 @@
 Scope 1, 2 and 3 emissions, where every number can be traced back to its activity data,
 emission factor, unit conversion and GWP.
 
-> Status: **alpha (v0.4)**: core engine, the full **UK Government (DESNZ) 2025**
-> conversion-factor set (2,672 factors), an **AI-assisted Scope 3 spend classifier** with
-> human review and an audit trail, and a **web dashboard** (FastAPI + Angular).
+> Status: **alpha (v0.5)**: core engine, official factor datasets (**UK DESNZ 2025**, 2,672
+> factors, and **US EPA supply chain factors v1.3**, 1,016 spend-based factors), an
+> **AI-assisted Scope 3 spend classifier** with human review and an audit trail, and a **web
+> dashboard** (FastAPI + Angular).
 
 ![openscope dashboard](docs/images/dashboard-overview-light.png)
 
@@ -156,10 +157,17 @@ precision. See [docs/classification.md](docs/classification.md).
 ### Factor datasets
 
 ```bash
-openscope datasets                                   # bundled: desnz-2025, sample
+openscope datasets                                   # bundled: desnz-2025, useeio-1.3, sample
 openscope factors --dataset desnz-2025 --search "Hotel stay"
 openscope import-desnz ghg-conversion-factors-2026-flat-format.xlsx --out desnz_2026.csv
+openscope import-useeio SupplyChainGHGEmissionFactors_v1.3.0_NAICS_byGHG_USD2022.csv \
+    --co2e SupplyChainGHGEmissionFactors_v1.3.0_NAICS_CO2e_USD2022.csv --out useeio.csv
 ```
+
+**Spend-based factors (US EPA, USEEIO).** `useeio-1.3` holds kg of each gas per 2022 USD
+(purchaser price including margins) for 1,016 NAICS-6 commodities. The importer checks every
+commodity's per-gas total against EPA's published CO2e: 1,005 match within rounding and can be
+recalculated under AR6, and 11 fall back to the published AR5 total.
 
 **DESNZ and GWPs.** DESNZ publishes per-gas values already converted to CO2e with AR5 GWPs.
 openscope converts them back to kilograms of each gas, so DESNZ factors can be recalculated
@@ -193,6 +201,8 @@ Later files override earlier ones by `factor_id`.
   2025 (flat file v1), imported unmodified apart from unit and GWP handling.
   Contains public sector information licensed under the
   [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).
+* **`useeio-1.3`**: US EPA Supply Chain GHG Emission Factors v1.3.0 by NAICS-6
+  ([DOI 10.23719/1531143](https://doi.org/10.23719/1531143)), US public domain.
 * **`sample`** (always loaded unless `--no-bundled`): a few US EPA factors
   (`status=reference`) and **illustrative** placeholders (ids starting `DEMO-`) for demos and
   tests only. The CLI warns when an inventory relies on them.

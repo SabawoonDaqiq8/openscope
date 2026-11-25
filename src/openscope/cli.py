@@ -141,6 +141,27 @@ def _spend_factors(reg: FactorRegistry) -> list[EmissionFactor]:
     return [f for f in reg if units.get_unit(f.activity_unit).dimension.startswith("currency:")]
 
 
+def cmd_import_useeio(args: argparse.Namespace) -> int:
+    from openscope.importers import useeio
+
+    report = useeio.import_factors(args.by_ghg, args.co2e)
+    reg = FactorRegistry(report.factors)
+    reg.to_csv(
+        args.out,
+        header_comment=(
+            f"Imported from {Path(args.by_ghg).name} by openscope {__version__}.\n"
+            f"Source: {useeio.SOURCE}, {useeio.SOURCE_URL} (US public domain).\n"
+            "kg of each gas per 2022 USD, purchaser price including margins."
+        ),
+    )
+    print(f"Wrote {len(reg)} factors to {args.out}")
+    print(f"  per-gas (re-weightable to AR6): {report.per_gas}")
+    print(f"  published CO2e only:            {report.total_only}")
+    if args.co2e is None:
+        print("  (pass --co2e to reconcile per-gas totals against EPA's published CO2e)")
+    return 0
+
+
 def cmd_classify(args: argparse.Namespace) -> int:
     from openscope import classify as cl
 
@@ -244,6 +265,12 @@ def build_parser() -> argparse.ArgumentParser:
     i.add_argument("--out", required=True)
     i.add_argument("--year", type=int, help="Factor year (auto-detected if omitted)")
     i.set_defaults(func=cmd_import_desnz)
+
+    u = sub.add_parser("import-useeio", help="Convert EPA supply chain factors to factor CSV")
+    u.add_argument("by_ghg", help="SupplyChainGHGEmissionFactors_*_NAICS_byGHG_*.csv")
+    u.add_argument("--co2e", help="SupplyChainGHGEmissionFactors_*_NAICS_CO2e_*.csv (reconcile)")
+    u.add_argument("--out", required=True)
+    u.set_defaults(func=cmd_import_useeio)
 
     k = sub.add_parser(
         "classify", parents=[common], help="Classify a ledger export into Scope 3 categories"

@@ -154,19 +154,23 @@ function storedReviewer(): string {
                           </option>
                         }
                       </select>
-                      <select
+                      <input
                         class="input"
+                        list="factor-options"
                         aria-label="Emission factor"
+                        placeholder="Search factor (e.g. hotels, software)"
                         required
-                        (change)="ovFactor.set($any($event.target).value)"
-                      >
-                        <option value="">Spend-based factor…</option>
+                        [value]="ovFactor()"
+                        (input)="ovFactor.set($any($event.target).value.trim())"
+                      />
+                      <datalist id="factor-options">
                         @for (f of factorsFor(ovCategory()); track f.factor_id) {
-                          <option [value]="f.factor_id" [selected]="f.factor_id === ovFactor()">
-                            {{ f.name }}
-                          </option>
+                          <option [value]="f.factor_id">{{ f.name }}</option>
                         }
-                      </select>
+                      </datalist>
+                      <div class="text-xs text-muted min-h-4">
+                        {{ factorName(ovFactor()) }}
+                      </div>
                       <input
                         class="input"
                         placeholder="Note (why)"
@@ -287,7 +291,7 @@ export class ReviewPage {
   constructor() {
     this.api.meta().subscribe((m) => this.meta.set(m));
     this.api
-      .factors({ spend_only: true, limit: 500 })
+      .factors({ spend_only: true, limit: 2000 })
       .subscribe((p) => this.spendFactors.set(p.items));
     effect(() => this.loadRuns(this.runId()));
     effect(() => {
@@ -314,6 +318,10 @@ export class ReviewPage {
   protected canAccept(l: RunLine): boolean {
     if (l.source === 'reviewer') return false;
     return l.decision === 'exclude' || (l.decision === 'classify' && !!l.factor_id);
+  }
+  protected factorName(id: string): string {
+    if (!id) return '';
+    return this.spendFactors().find((f) => f.factor_id === id)?.name ?? 'Unknown factor id';
   }
   protected factorsFor(category: string): Factor[] {
     const c = Number(category);

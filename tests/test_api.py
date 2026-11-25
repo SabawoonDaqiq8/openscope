@@ -37,8 +37,10 @@ def test_factor_search(client: TestClient) -> None:
     page = client.get("/api/factors", params={"search": "electricity uk", "scope": 2}).json()
     assert page["total"] >= 1
     assert any(f["factor_id"] == "DESNZ-2025-7_400_4000_5" for f in page["items"])
-    spend = client.get("/api/factors", params={"spend_only": True, "limit": 500}).json()
-    assert spend["total"] > 0 and all(f["activity_unit"] == "USD" for f in spend["items"])
+    spend = client.get("/api/factors", params={"spend_only": True, "limit": 2000}).json()
+    assert spend["total"] > 1000 and all(f["activity_unit"] == "USD" for f in spend["items"])
+    hotel = client.get("/api/factors", params={"search": "hotels motels", "spend_only": True})
+    assert any(f["factor_id"] == "USEEIO-1.3-721110" for f in hotel.json()["items"])
 
 
 def test_inventory_upload_and_detail(client: TestClient) -> None:
@@ -91,7 +93,7 @@ def test_classification_review_and_export_flow(client: TestClient) -> None:
             "reviewer": "S. Daqiq",
             "action": "override",
             "scope3_category": 2,
-            "factor_id": "DEMO-SPEND-IT-EQUIPMENT",
+            "factor_id": "USEEIO-1.3-334111",
             "note": "capitalised laptops",
         },
     )
@@ -106,7 +108,7 @@ def test_classification_review_and_export_flow(client: TestClient) -> None:
 
     audit = client.get(f"/api/classification-runs/{rid}/audit").json()
     assert len(audit) == 1 and audit[0]["reviewer"] == "S. Daqiq"
-    assert audit[0]["after"]["factor_id"] == "DEMO-SPEND-IT-EQUIPMENT"
+    assert audit[0]["after"]["factor_id"] == "USEEIO-1.3-334111"
 
     exp = client.post(
         f"/api/classification-runs/{rid}/export", json={"name": "Spend inventory"}

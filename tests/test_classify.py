@@ -39,12 +39,19 @@ RULES = EX / "classification_rules_example.csv"
 
 @pytest.fixture(scope="module")
 def registry() -> FactorRegistry:
-    return FactorRegistry.bundled().merge(FactorRegistry.from_csv(SPEND))
+    return (
+        FactorRegistry.bundled()
+        .merge(FactorRegistry.from_csv(SPEND))
+        .merge(FactorRegistry.dataset("useeio-1.3"))
+    )
 
 
 @pytest.fixture(scope="module")
-def spend_factors(registry: FactorRegistry) -> list[Any]:
-    return [f for f in registry if f.activity_unit == "USD"]
+def spend_factors() -> list[Any]:
+    # the small illustrative catalogue keeps factor ids as a schema enum
+    return list(FactorRegistry.from_csv(SPEND)) + [
+        f for f in FactorRegistry.bundled() if f.activity_unit == "USD"
+    ]
 
 
 def line(i: str = "L1", **kw: Any) -> LedgerLine:
@@ -412,7 +419,7 @@ def test_cli_classify_and_review_apply(tmp_path: Path, capsys: pytest.CaptureFix
     review = tmp_path / "review.csv"
     rc = main(
         [
-            "classify", str(LEDGER), "--factors", str(SPEND), "--rules", str(RULES),
+            "classify", str(LEDGER), "--dataset", "useeio-1.3", "--rules", str(RULES),
             "--out", str(review), "--labels", str(LABELS),
         ]
     )  # fmt: skip
@@ -425,18 +432,37 @@ def test_cli_classify_and_review_apply(tmp_path: Path, capsys: pytest.CaptureFix
     edited = [header]
     for row in body:
         if row.startswith("AP-1004,"):
-            row = row[: -len(",,,,")] + ",override,1,DEMO-SPEND-SOFTWARE,SaaS"
+            row = row[: -len(",,,,")] + ",override,1,USEEIO-1.3-511210,SaaS"
         edited.append(row)
     review.write_text("\n".join(edited) + "\n")
 
     acts, audit, mem = tmp_path / "acts.csv", tmp_path / "audit.jsonl", tmp_path / "mem.json"
     rc = main(
         [
-            "review-apply", str(review), "--factors", str(SPEND), "--reviewer", "S. Daqiq",
+            "review-apply", str(review), "--dataset", "useeio-1.3", "--reviewer", "S. Daqiq",
             "--activities-out", str(acts), "--audit-log", str(audit), "--memory", str(mem),
         ]
     )  # fmt: skip
     assert rc == 0
     assert len(audit.read_text().splitlines()) == 1
     assert "cloudstack" in mem.read_text()
-    assert main(["calculate", str(acts), "--factors", str(SPEND)]) == 0
+    assert main(["calculate", str(acts), "--dataset", "useeio-1.3"]) == 0
+
+
+def test_large_catalogue_uses_string_schema_and_still_rejects_unknown_ids() -> None:
+    useeio = [f for f in FactorRegistry.dataset("useeio-1.3")]
+    client = FakeClient(
+        lambda kw: reply(
+            [
+                result("A", factor_id="USEEIO-1.3-721110", scope3_category=6),
+                result("B", factor_id="USEEIO-1.3-999999"),
+            ]
+        )
+    )
+    clf = LLMClassifier(client, useeio)
+    out = clf.classify([line("A"), line("B")])
+    schema = client.messages.calls[0]["output_config"]["format"]["schema"]
+    fid = schema["properties"]["results"]["items"]["properties"]["factor_id"]
+    assert "enum" not in fid
+    assert out["A"].factor_id == "USEEIO-1.3-721110"
+    assert out["B"].factor_id is None  # made-up id dropped

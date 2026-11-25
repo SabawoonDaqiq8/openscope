@@ -20,6 +20,7 @@ from fastapi import (
     UploadFile,
 )
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -52,6 +53,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.service = service
     app.state.database = database
 
+    app.add_middleware(GZipMiddleware, minimum_size=1024)
     if settings.cors_origins:
         app.add_middleware(
             CORSMiddleware,
@@ -95,7 +97,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         search: str | None = None,
         scope: Annotated[int | None, Query(ge=1, le=3)] = None,
         spend_only: bool = False,
-        limit: Annotated[int, Query(ge=1, le=500)] = 50,
+        limit: Annotated[int, Query(ge=1, le=2000)] = 50,
         offset: Annotated[int, Query(ge=0)] = 0,
     ) -> schemas.FactorPage:
         return service.factors(search, scope, spend_only, limit, offset)
