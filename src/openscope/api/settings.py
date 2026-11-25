@@ -25,6 +25,8 @@ class Settings:
     OPENSCOPE_LLM           "1" to allow Claude classification (needs ANTHROPIC_API_KEY)
     OPENSCOPE_LLM_MODEL     model id                  (default: claude-opus-5-5)
     OPENSCOPE_CORS_ORIGINS  comma-separated origins for local frontend development
+    OPENSCOPE_PUBLIC_DEMO   "1" for a public demo: loads demo data at startup and shows a
+                            banner warning visitors that data is public and temporary
     """
 
     db_url: str = "sqlite:///./openscope.db"
@@ -35,6 +37,7 @@ class Settings:
     static_dir: Path | None = None
     llm_enabled: bool = False
     llm_model: str = "claude-opus-5-5"
+    public_demo: bool = False
     cors_origins: list[str] = field(default_factory=list)
 
     @classmethod
@@ -58,6 +61,7 @@ class Settings:
             if env.get("OPENSCOPE_STATIC_DIR")
             else None,
             llm_enabled=env.get("OPENSCOPE_LLM") == "1",
+            public_demo=env.get("OPENSCOPE_PUBLIC_DEMO") == "1",
             llm_model=env.get("OPENSCOPE_LLM_MODEL", cls.llm_model),
             cors_origins=[
                 o.strip() for o in env.get("OPENSCOPE_CORS_ORIGINS", "").split(",") if o.strip()

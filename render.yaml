@@ -1,0 +1,16 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# Deploys the public demo from this repository's Dockerfile on the free plan.
+services:
+  - type: web
+    name: openscope
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: OPENSCOPE_PUBLIC_DEMO
+        value: "1"
+      # free instances have no persistent disk; the demo reloads on every start
+      - key: OPENSCOPE_DB_URL
+        value: sqlite:////tmp/openscope.db

@@ -517,6 +517,8 @@ export interface components {
             gwp_sets: string[];
             /** Llm Enabled */
             llm_enabled: boolean;
+            /** Public Demo */
+            public_demo: boolean;
             /** Scope3 Categories */
             scope3_categories: components["schemas"]["CategoryOut"][];
             /** Version */

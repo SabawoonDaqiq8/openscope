@@ -19,6 +19,9 @@ emission factor, unit conversion and GWP.
 
 ## Dashboard
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/SabawoonDaqiq8/openscope)
+&nbsp;See [docs/deployment.md](docs/deployment.md) for hosting notes.
+
 ```bash
 docker build -t openscope .
 docker run -p 8000:8000 -v openscope-data:/data openscope

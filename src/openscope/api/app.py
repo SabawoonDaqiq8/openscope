@@ -37,6 +37,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings.from_env()
     database = db.Database(settings.db_url)
     service = Service(settings)
+    if settings.public_demo:
+        # fresh (ephemeral) database on every start: make sure visitors see data
+        with database.sessions() as session:
+            service.load_demo(session)
 
     app = FastAPI(
         title="openscope API",

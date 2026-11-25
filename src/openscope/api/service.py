@@ -93,6 +93,7 @@ class Service:
             ],
             llm_enabled=self.llm_available(),
             demo_available=self._demo_file("uk_demo_activities.csv") is not None,
+            public_demo=self.settings.public_demo,
         )
 
     def llm_available(self) -> bool:

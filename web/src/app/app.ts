@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
+import { ApiService } from './api/api.service';
 import { ThemeChoice, ThemeService } from './core/theme.service';
 
 @Component({
@@ -47,6 +48,21 @@ import { ThemeChoice, ThemeService } from './core/theme.service';
         </div>
       </div>
     </header>
+    @if (publicDemo()) {
+      <div class="border-b border-line bg-accent-soft text-sm" role="note">
+        <div class="mx-auto max-w-7xl px-4 py-2">
+          <b>Public demo.</b> Anyone can see what is uploaded here and data resets regularly. Do not
+          upload confidential data.
+          <a
+            class="underline"
+            href="https://github.com/SabawoonDaqiq8/openscope"
+            target="_blank"
+            rel="noopener"
+            >Source on GitHub</a
+          >
+        </div>
+      </div>
+    }
     <main id="main" class="mx-auto max-w-7xl px-4 py-6">
       <router-outlet />
     </main>
@@ -57,6 +73,13 @@ import { ThemeChoice, ThemeService } from './core/theme.service';
 })
 export class App {
   protected readonly theme = inject(ThemeService);
+  protected readonly publicDemo = signal(false);
+
+  constructor() {
+    inject(ApiService)
+      .meta()
+      .subscribe({ next: (m) => this.publicDemo.set(m.public_demo), error: () => undefined });
+  }
   protected readonly themes: ThemeChoice[] = ['system', 'light', 'dark'];
   protected readonly nav = [
     { path: '/overview', label: 'Overview' },

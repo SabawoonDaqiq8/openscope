@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1
+### Added
+- Public demo mode (`OPENSCOPE_PUBLIC_DEMO=1`): demo data loaded at startup, banner warning
+  that data is public and temporary
+- `render.yaml` Blueprint and deployment guide; "Deploy to Render" button
+- Docker image listens on `$PORT`; CI smoke-tests the image with Render's settings
+
 ## 0.4.0
 ### Added
 - REST API (`openscope.api`, FastAPI): inventories, line-level results with audit trails,

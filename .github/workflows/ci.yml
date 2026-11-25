@@ -51,7 +51,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: docker build -t openscope:ci .
-      - name: Smoke test the image
+      - name: Smoke test the image (default settings)
         run: |
           docker run -d --name os -p 8000:8000 openscope:ci
           for i in $(seq 1 30); do curl -sf localhost:8000/api/health && break; sleep 1; done
@@ -59,3 +59,11 @@ jobs:
           curl -sf -X POST localhost:8000/api/demo | grep -q inventory_id
           curl -sf localhost:8000/api/inventories | grep -q "DESNZ"
           docker logs os
+      - name: Smoke test the image as deployed on Render (custom $PORT, public demo)
+        run: |
+          docker run -d --name demo -p 9000:10000 -e PORT=10000 -e OPENSCOPE_PUBLIC_DEMO=1 \
+            -e OPENSCOPE_DB_URL=sqlite:////tmp/openscope.db openscope:ci
+          for i in $(seq 1 30); do curl -sf localhost:9000/api/health && break; sleep 1; done
+          curl -sf localhost:9000/api/meta | grep -q '"public_demo":true'
+          curl -sf localhost:9000/api/inventories | grep -q "DESNZ"
+          docker logs demo

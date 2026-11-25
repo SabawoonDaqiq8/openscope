@@ -163,3 +163,15 @@ def test_spa_fallback(tmp_path: Path) -> None:
     assert c.get("/../../etc/passwd").status_code in (200, 404)
     assert "root:" not in c.get("/../../etc/passwd").text
     assert c.get("/api/nope").status_code == 404
+
+
+def test_public_demo_mode_preloads_data(tmp_path: Path) -> None:
+    settings = Settings(db_url=f"sqlite:///{tmp_path / 'demo.db'}", demo_dir=EX, public_demo=True)
+    settings.add_demo_defaults()
+    c = TestClient(create_app(settings))
+    assert c.get("/api/meta").json()["public_demo"] is True
+    assert len(c.get("/api/inventories").json()) == 1
+    assert len(c.get("/api/classification-runs").json()) == 1
+    # restarting against the same database does not duplicate the demo
+    c2 = TestClient(create_app(settings))
+    assert len(c2.get("/api/inventories").json()) == 1

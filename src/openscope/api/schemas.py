@@ -20,6 +20,7 @@ class Meta(BaseModel):
     scope3_categories: list[CategoryOut]
     llm_enabled: bool
     demo_available: bool
+    public_demo: bool
 
 
 class FactorOut(BaseModel):
