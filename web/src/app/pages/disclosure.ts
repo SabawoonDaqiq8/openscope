@@ -324,17 +324,19 @@ export class DisclosurePage {
 
   constructor() {
     effect(() => this.loadInventories(this.id()));
-    effect(() => {
+    // latest input wins: re-running the effect aborts the previous request
+    effect((onCleanup) => {
       const id = this.inventoryId();
       const q = this.query();
       if (id === null) return;
-      this.api.disclosure(id, q).subscribe({
+      const sub = this.api.disclosure(id, q).subscribe({
         next: (d) => {
           this.d.set(d);
           this.error.set('');
         },
         error: (e) => this.error.set(errorMessage(e)),
       });
+      onCleanup(() => sub.unsubscribe());
     });
   }
 

@@ -1,5 +1,6 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import type { Subscription } from 'rxjs';
 
 import {
   ApiService,
@@ -302,10 +303,12 @@ export class ReviewPage {
       .factors({ spend_only: true, limit: 2000 })
       .subscribe((p) => this.spendFactors.set(p.items));
     effect(() => this.loadRuns(this.runId()));
-    effect(() => {
+    effect((onCleanup) => {
       const r = this.run();
       const s = this.status();
-      if (r) this.loadLines(r.id, s);
+      if (!r) return;
+      const sub = this.loadLines(r.id, s);
+      onCleanup(() => sub.unsubscribe()); // switching tabs quickly: latest wins
     });
   }
 
@@ -432,8 +435,8 @@ export class ReviewPage {
     this.api.audit(id).subscribe((a) => this.audit.set(a));
   }
 
-  private loadLines(id: number, status: string): void {
-    this.api.runLines(id, status).subscribe({
+  private loadLines(id: number, status: string): Subscription {
+    return this.api.runLines(id, status).subscribe({
       next: (ls) => this.lines.set(ls),
       error: (e) => this.error.set(errorMessage(e)),
     });

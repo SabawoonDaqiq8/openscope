@@ -5,9 +5,11 @@ test.describe.configure({ mode: 'serial' });
 test('overview shows the demo inventory with charts and the workflow strip', async ({ page }) => {
   await page.goto('/');
   await expect(page).toHaveURL(/\/overview/);
-  await expect(page.getByRole('combobox', { name: 'Inventory' })).toContainText(
-    'Demo: UK company 2025',
-  );
+  // tests that export inventories may have run before (e.g. on retry): pick the demo explicitly
+  await page
+    .getByRole('combobox', { name: 'Inventory' })
+    .selectOption({ label: 'Demo: UK company 2025 (DESNZ factors)' });
+  await expect(page).toHaveURL(/\/overview\/\d+/);
   await expect(page.locator('os-stat', { hasText: 'Total emissions' })).toContainText('650.0');
   await expect(page.locator('canvas').first()).toBeVisible();
   for (const step of ['Measure', 'Classify', 'Plan', 'Disclose']) {
@@ -24,6 +26,11 @@ test('overview shows the demo inventory with charts and the workflow strip', asy
 
 test('line explorer expands the audit trail of a calculation', async ({ page }) => {
   await page.goto('/overview');
+  // tests that export inventories may have run before (e.g. on retry): pick the demo explicitly
+  await page
+    .getByRole('combobox', { name: 'Inventory' })
+    .selectOption({ label: 'Demo: UK company 2025 (DESNZ factors)' });
+  await expect(page).toHaveURL(/\/overview\/\d+/);
   await page.getByRole('link', { name: /Line explorer/ }).click();
   const toggle = page.getByRole('button', { name: /Audit trail for HQ boiler natural gas/ });
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
@@ -37,18 +44,28 @@ test('scope 3 review: override a line, see it in the audit log, export it', asyn
   await expect(page.getByRole('heading', { name: 'Scope 3 review' })).toBeVisible();
   await page.getByLabel('Reviewer (for the audit log)').fill('E2E Reviewer');
 
-  const row = page.locator('tbody tr', { hasText: 'Annual SaaS subscription CRM' });
+  // the first line in the "Needs review" queue (idempotent: works on reruns as well)
+  const first = page
+    .locator('tbody tr')
+    .filter({ has: page.getByRole('button', { name: 'Override' }) })
+    .first();
+  const lineId = (await first.locator('.text-xs.text-muted').first().innerText())
+    .split(' · ')[0]
+    .trim();
+  // pin the row by its id: once the form opens, it no longer has an Override button
+  const row = page.locator('tbody tr', { hasText: lineId });
   await row.getByRole('button', { name: 'Override' }).click();
   await row.getByLabel('Scope 3 category').selectOption('1');
   await row.getByLabel('Emission factor').fill('USEEIO-1.3-511210');
   await expect(row.getByRole('status')).toHaveText('Software Publishers (NAICS 511210)');
-  await row.getByLabel('Note').fill('SaaS is software publishing');
+  await row.getByLabel('Note').fill('E2E override');
   await row.getByRole('button', { name: 'Save' }).click();
 
   const audit = page.locator('section', { hasText: 'Audit log' });
-  await expect(audit.getByRole('cell', { name: 'E2E Reviewer' })).toBeVisible();
-  await expect(audit.getByText('cat 1 · USEEIO-1.3-511210')).toBeVisible();
-  await expect(page.getByRole('tab', { name: /Reviewed/ })).toContainText('1');
+  const entry = audit.locator('tr', { hasText: lineId }).first();
+  await expect(entry).toContainText('E2E Reviewer');
+  await expect(entry).toContainText('cat 1 · USEEIO-1.3-511210');
+  await expect(page.getByRole('tab', { name: /Reviewed/ })).not.toContainText(/Reviewed\s*0\b/);
 
   await page.getByRole('button', { name: /Export accepted/ }).click();
   await expect(page).toHaveURL(/\/overview\/\d+/);
