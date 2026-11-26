@@ -5,6 +5,8 @@ so it runs on any container host.
 
 ## Public demo on Render (free)
 
+The public demo runs at https://openscope-xi6p.onrender.com/overview.
+
 The repository contains a [`render.yaml`](../render.yaml) Blueprint:
 
 1. Sign in at [render.com](https://render.com) with GitHub, and let Render access this repository.

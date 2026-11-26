@@ -29,6 +29,15 @@ describe('App shell', () => {
     ]);
   });
 
+  it('credits the author and links the source and licence in the footer', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const footer = (fixture.nativeElement as HTMLElement).querySelector('footer')!;
+    expect(footer.textContent).toContain('Built by Sabawoon Daqiq');
+    const licence = footer.querySelector('a[href$="/blob/main/LICENSE"]');
+    expect(licence?.textContent).toContain('MIT License');
+  });
+
   it('shows the public-demo banner only when the server is a public demo', async () => {
     const fixture = TestBed.createComponent(App);
     const http = TestBed.inject(HttpTestingController);

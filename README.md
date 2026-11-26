@@ -1,5 +1,8 @@
 # openscope
 
+**[▶ Live demo](https://openscope-xi6p.onrender.com/overview)** · [Documentation](docs/methodology.md) · [Roadmap](ROADMAP.md)
+
+[![Live demo](https://img.shields.io/badge/live%20demo-onrender.com-46e3b7)](https://openscope-xi6p.onrender.com/overview)
 [![CI](https://github.com/SabawoonDaqiq8/openscope/actions/workflows/ci.yml/badge.svg)](https://github.com/SabawoonDaqiq8/openscope/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -20,6 +23,10 @@ emission factor, unit conversion and GWP.
 ![openscope dashboard](docs/images/dashboard-overview-light.png)
 
 ## Dashboard
+
+**Try it: [openscope-xi6p.onrender.com](https://openscope-xi6p.onrender.com/overview)**. The public
+demo loads sample data automatically. It runs on Render's free plan, so the first visit after a
+quiet period can take up to a minute while the service wakes up.
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/SabawoonDaqiq8/openscope)
 &nbsp;See [docs/deployment.md](docs/deployment.md) for hosting notes.

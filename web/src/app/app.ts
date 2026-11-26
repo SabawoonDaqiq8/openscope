@@ -66,13 +66,26 @@ import { ThemeChoice, ThemeService } from './core/theme.service';
     <main id="main" class="mx-auto max-w-7xl px-4 py-6">
       <router-outlet />
     </main>
-    <footer class="mx-auto max-w-7xl px-4 pb-8 text-xs text-muted">
-      openscope · open-source GHG Protocol carbon accounting · MIT licence
+    <footer class="mx-auto max-w-7xl px-4 pb-8 text-xs text-muted flex flex-wrap gap-x-2 gap-y-1">
+      <span>openscope · open-source GHG Protocol carbon accounting</span>
+      <span aria-hidden="true">·</span>
+      <span>Built by Sabawoon Daqiq</span>
+      <span aria-hidden="true">·</span>
+      <a class="underline hover:text-ink" [href]="repo" target="_blank" rel="noopener">GitHub</a>
+      <span aria-hidden="true">·</span>
+      <a
+        class="underline hover:text-ink"
+        [href]="repo + '/blob/main/LICENSE'"
+        target="_blank"
+        rel="noopener"
+        >MIT License</a
+      >
     </footer>
   `,
 })
 export class App {
   protected readonly theme = inject(ThemeService);
+  protected readonly repo = 'https://github.com/SabawoonDaqiq8/openscope';
   protected readonly publicDemo = signal(false);
 
   constructor() {
