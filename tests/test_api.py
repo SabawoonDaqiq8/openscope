@@ -34,6 +34,8 @@ def test_health_and_meta(client: TestClient) -> None:
 
 
 def test_factor_search(client: TestClient) -> None:
+    top = client.get("/api/factors", params={"search": "electricity uk", "limit": 5}).json()
+    assert "DESNZ-2025-7_400_4000_5" in [f["factor_id"] for f in top["items"]]  # name ranks first
     page = client.get("/api/factors", params={"search": "electricity uk", "scope": 2}).json()
     assert page["total"] >= 1
     assert any(f["factor_id"] == "DESNZ-2025-7_400_4000_5" for f in page["items"])

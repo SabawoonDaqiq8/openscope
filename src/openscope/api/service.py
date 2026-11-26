@@ -126,6 +126,13 @@ class Service:
                 for f in items
                 if all(t in f"{f.factor_id} {f.name} {f.source}".lower() for t in terms)
             ]
+
+            # relevance: terms found in the name first, then the most specific (shortest) name
+            def rank(f: EmissionFactor) -> tuple[int, int, str]:
+                name = f.name.lower()
+                return (-sum(t in name for t in terms), len(name), f.factor_id)
+
+            items = sorted(items, key=rank)
         if scope is not None:
             items = [f for f in items if f.scope is not None and int(f.scope) == scope]
         page = items[offset : offset + limit]
@@ -235,7 +242,6 @@ class Service:
         gwp_set: str,
         reporting_year: int | None,
     ) -> db.Inventory:
-        self._check_name(name)
         path = _save_upload(content)
         try:
             activities = read_activities(path)
@@ -358,6 +364,10 @@ class Service:
 
     # -- public demo guards --------------------------------------------------------------------
     def _check_name(self, name: str) -> None:
+        """Ledger runs are protected by their name prefix, so visitors cannot reuse it.
+
+        (Inventories are protected by ``source == "demo"``, so their names are not restricted.)
+        """
         if self.settings.public_demo and name.strip().lower().startswith("demo:"):
             raise OpenScopeError("Names starting with 'Demo:' are reserved in the public demo")
 
@@ -484,7 +494,6 @@ class Service:
     def export_run(
         self, session: Session, run: db.ClassificationRun, body: schemas.ExportIn
     ) -> schemas.ExportOut:
-        self._check_name(body.name)
         classified = [cl.ClassifiedLine.model_validate(r.data) for r in run.lines]
         activities = cl.to_activities(classified)
         if not activities:

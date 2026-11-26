@@ -275,7 +275,14 @@ See [docs/methodology.md](docs/methodology.md).
 pytest                                    # Python tests (engine, classifier, API)
 ruff check . && mypy src                  # lint + strict type-check
 cd web && npx ng test --watch=false       # Angular unit tests (Vitest)
+cd web && npx ng build && npx playwright test   # end-to-end tests in a real browser
 ```
+
+The end-to-end suite runs against the production build in public-demo mode, the same setup as
+the live demo. It covers the main flows (overview, audit trail, Scope 3 review and export,
+pathways, disclosure, factor search), fails on any console error or Content-Security-Policy
+violation, checks the demo protections and security headers, runs axe-core accessibility
+checks on every page in light and dark mode, and checks that every page fits a phone screen.
 
 ## License
 

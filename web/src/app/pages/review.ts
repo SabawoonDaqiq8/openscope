@@ -174,7 +174,7 @@ function storedReviewer(): string {
                           <option [value]="f.factor_id">{{ f.name }}</option>
                         }
                       </datalist>
-                      <div class="text-xs text-muted min-h-4">
+                      <div class="text-xs text-muted min-h-4" role="status" aria-live="polite">
                         {{ factorName(ovFactor()) }}
                       </div>
                       <input

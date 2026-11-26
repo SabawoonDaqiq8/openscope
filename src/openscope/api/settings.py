@@ -29,6 +29,7 @@ class Settings:
                             that data is public and temporary, disables deletes, limits
                             uploads to 1 MB, rate-limits writes per visitor and caps stored
                             visitor uploads (oldest removed first)
+    OPENSCOPE_DEMO_WRITE_LIMIT  writes per visitor per 10 minutes in the public demo (default 30)
     """
 
     db_url: str = "sqlite:///./openscope.db"
@@ -67,6 +68,7 @@ class Settings:
             else None,
             llm_enabled=env.get("OPENSCOPE_LLM") == "1",
             public_demo=env.get("OPENSCOPE_PUBLIC_DEMO") == "1",
+            demo_write_limit=int(env.get("OPENSCOPE_DEMO_WRITE_LIMIT", cls.demo_write_limit)),
             llm_model=env.get("OPENSCOPE_LLM_MODEL", cls.llm_model),
             cors_origins=[
                 o.strip() for o in env.get("OPENSCOPE_CORS_ORIGINS", "").split(",") if o.strip()

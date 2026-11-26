@@ -44,11 +44,23 @@ def test_public_demo_blocks_deletes(tmp_path: Path) -> None:
     assert len(c.get("/api/inventories").json()) == 2
 
 
-def test_public_demo_upload_size_and_reserved_names(tmp_path: Path) -> None:
+def test_public_demo_upload_size_and_reserved_run_names(tmp_path: Path) -> None:
     c = demo_client(tmp_path)
     assert upload(c, "big", ACTS + b"#" * (1024 * 1024)) == 413
-    assert upload(c, "Demo: fake") == 400
     assert upload(c, "mine") == 201
+    ledger = (EX / "ledger_sample.csv").read_bytes()
+    r = c.post("/api/classification-runs", files={"file": ("l.csv", ledger, "text/csv")},
+               data={"name": "Demo: fake"})  # fmt: skip
+    assert r.status_code == 400
+
+
+def test_public_demo_export_of_the_demo_ledger_works(tmp_path: Path) -> None:
+    # regression: the exported inventory is named after the demo run ("Demo: ...")
+    c = demo_client(tmp_path)
+    run = next(r for r in c.get("/api/classification-runs").json() if r["name"].startswith("Demo:"))
+    r = c.post(f"/api/classification-runs/{run['id']}/export",
+               json={"name": "Demo: AP ledger 2025 (spend-based)"})  # fmt: skip
+    assert r.status_code == 201, r.text
 
 
 def test_public_demo_keeps_only_newest_visitor_uploads(tmp_path: Path) -> None:

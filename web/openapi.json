@@ -1873,7 +1873,7 @@
   "info": {
     "description": "Open-source, auditable carbon accounting: GHG Protocol Scope 1, 2 and 3.",
     "title": "openscope API",
-    "version": "0.7.1"
+    "version": "0.7.2"
   },
   "openapi": "3.1.0",
   "paths": {

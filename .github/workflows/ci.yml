@@ -45,6 +45,39 @@ jobs:
       - run: npx ng test --watch=false
       - run: npx ng build
 
+  e2e:
+    name: e2e (Playwright)
+    runs-on: ubuntu-latest
+    needs: [web]
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -e "..[api]"
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx ng build
+      - name: End-to-end tests (desktop flows, accessibility, phone layout)
+        run: npx playwright test
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            web/playwright-report
+            web/test-results
+          retention-days: 7
+
   docker:
     runs-on: ubuntu-latest
     needs: [python, web]

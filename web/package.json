@@ -7,7 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "gen:api": "cd .. && python scripts/export_openapi.py web/openapi.json && cd web && npx -y openapi-typescript@7.13.0 openapi.json -o src/app/api/schema.d.ts"
+    "gen:api": "cd .. && python scripts/export_openapi.py web/openapi.json && cd web && npx -y openapi-typescript@7.13.0 openapi.json -o src/app/api/schema.d.ts",
+    "e2e": "playwright test"
   },
   "private": true,
   "packageManager": "npm@10.9.9",
@@ -27,6 +28,8 @@
     "@angular/build": "^22.3.0",
     "@angular/cli": "^22.3.0",
     "@angular/compiler-cli": "^22.3.0",
+    "@axe-core/playwright": "4.10.2",
+    "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "^4.3.5",
     "jsdom": "^31.0.0",
     "postcss": "^8.5.33",

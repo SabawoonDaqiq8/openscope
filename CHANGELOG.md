@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.7.2
+### Added
+- End-to-end test suite (Playwright, 27 tests) against the production build in public-demo
+  mode: main user flows, zero console/CSP errors, demo protections and security headers,
+  axe-core accessibility on every page (light and dark), phone-width layout. Runs in CI.
+
+### Fixed
+- Public demo: exporting the demo ledger failed (HTTP 400) because the exported inventory's
+  name starts with "Demo:". The reserved prefix now applies to ledger runs only, since demo
+  inventories are protected by their source. Found by the new end-to-end tests.
+- Factor search ranks results: matches in the factor name first, then the most specific
+  name. "electricity uk" used to bury the UK grid factor among 154 results.
+
+### Improved
+- The chosen factor in the review override form is announced to screen readers (`role=status`)
+
 ## 0.7.1
 ### Security
 - Public-demo mode: deletes disabled, 1 MB upload limit, per-visitor write rate limit (429
