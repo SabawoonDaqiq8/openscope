@@ -29,13 +29,12 @@ describe('App shell', () => {
     ]);
   });
 
-  it('credits the author and links the source and licence in the footer', async () => {
+  it('keeps the footer free of personal details and links', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const footer = (fixture.nativeElement as HTMLElement).querySelector('footer')!;
-    expect(footer.textContent).toContain('Built by Sabawoon Daqiq');
-    const licence = footer.querySelector('a[href$="/blob/main/LICENSE"]');
-    expect(licence?.textContent).toContain('MIT License');
+    expect(footer.textContent).toContain('open-source GHG Protocol carbon accounting');
+    expect(footer.querySelectorAll('a')).toHaveLength(0);
   });
 
   it('shows the public-demo banner only when the server is a public demo', async () => {
