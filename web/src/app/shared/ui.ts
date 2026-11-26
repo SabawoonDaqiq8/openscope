@@ -1,4 +1,5 @@
 import { Component, computed, input, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 /** A headline number. Large standalone figures use proportional digits. */
 @Component({
@@ -121,4 +122,63 @@ export class ChartCard {
 })
 export class EmptyState {
   readonly title = input.required<string>();
+}
+
+/** The four-step workflow, shown on the overview so first-time visitors know where to go. */
+@Component({
+  selector: 'os-how-it-works',
+  imports: [RouterLink],
+  template: `
+    <section aria-labelledby="how-title" class="mb-5">
+      <h2 id="how-title" class="sr-only">How openscope works</h2>
+      <ol class="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        @for (s of steps(); track s.title; let i = $index) {
+          <li class="card p-3 flex gap-3">
+            <span
+              class="shrink-0 w-6 h-6 rounded-full bg-accent-soft text-ink text-xs font-semibold grid place-items-center"
+              aria-hidden="true"
+              >{{ i + 1 }}</span
+            >
+            <div class="min-w-0">
+              <div class="text-sm font-semibold">{{ s.title }}</div>
+              <p class="text-xs text-muted mt-0.5">{{ s.text }}</p>
+              <a class="text-xs underline mt-1 inline-block hover:text-ink" [routerLink]="s.link">{{
+                s.cta
+              }}</a>
+            </div>
+          </li>
+        }
+      </ol>
+    </section>
+  `,
+})
+export class HowItWorks {
+  /** Link for step 1 (the current inventory's line explorer). */
+  readonly linesLink = input<string | (string | number)[]>('/upload');
+  protected readonly steps = computed(() => [
+    {
+      title: 'Measure',
+      text: 'Scope 1–3 from activity data with official UK DESNZ and US EPA factors. Every number has an audit trail.',
+      link: this.linesLink(),
+      cta: 'Explore the calculations →',
+    },
+    {
+      title: 'Classify',
+      text: 'Purchase-ledger lines mapped to Scope 3 categories by rules, supplier memory and Claude, then human review.',
+      link: '/review',
+      cta: 'Open the review queue →',
+    },
+    {
+      title: 'Plan',
+      text: 'Abatement levers, a cost curve and science-based targets, with Monte Carlo uncertainty.',
+      link: '/pathways',
+      cta: 'Simulate a pathway →',
+    },
+    {
+      title: 'Disclose',
+      text: 'ESRS E1-6 and IFRS S2 emissions tables with readiness checks and exports.',
+      link: '/disclosure',
+      cta: 'Build the disclosure →',
+    },
+  ]);
 }

@@ -60,18 +60,20 @@ import { Notice } from '../shared/ui';
         </thead>
         <tbody>
           @for (l of filtered(); track l.activity_id + (l.scope2_method ?? '')) {
-            <tr
-              class="cursor-pointer hover:bg-surface-2"
-              tabindex="0"
-              [attr.aria-expanded]="open() === key(l)"
-              (click)="toggle(l)"
-              (keydown.enter)="toggle(l)"
-            >
+            <tr class="cursor-pointer hover:bg-surface-2" (click)="toggle(l)">
               <td>
-                <div>{{ l.description || l.activity_id }}</div>
-                <div class="text-xs text-muted">
-                  {{ l.activity_id }}{{ l.site ? ' · ' + l.site : '' }}
-                </div>
+                <button
+                  type="button"
+                  class="text-left w-full"
+                  [attr.aria-expanded]="open() === key(l)"
+                  [attr.aria-label]="'Audit trail for ' + (l.description || l.activity_id)"
+                  (click)="$event.stopPropagation(); toggle(l)"
+                >
+                  <span class="block">{{ l.description || l.activity_id }}</span>
+                  <span class="block text-xs text-muted">
+                    {{ l.activity_id }}{{ l.site ? ' · ' + l.site : '' }}
+                  </span>
+                </button>
               </td>
               <td class="whitespace-nowrap">
                 <span class="swatch mr-1.5" [style.background]="tokens().scope[l.scope - 1]"></span>

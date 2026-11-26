@@ -93,12 +93,12 @@ const list = (v: string): number[] | null => {
             Model abatement levers against a science-based target, with uncertainty.
           </p>
         </div>
-        <div class="flex items-end gap-2">
-          <div>
+        <div class="flex flex-wrap items-end gap-2 w-full sm:w-auto">
+          <div class="w-full sm:w-auto">
             <label for="inv" class="block text-xs text-muted mb-1">Baseline inventory</label>
             <select
               id="inv"
-              class="input min-w-64"
+              class="input w-full sm:w-auto sm:min-w-64"
               [value]="inventoryId()"
               (change)="selectInventory($event)"
             >

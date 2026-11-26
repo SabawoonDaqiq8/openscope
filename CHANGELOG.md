@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.7.1
+### Security
+- Public-demo mode: deletes disabled, 1 MB upload limit, per-visitor write rate limit (429
+  with Retry-After), cap on stored visitor uploads (oldest removed, demo data kept), reserved
+  `Demo:` names
+- Security headers on every response, including a strict Content-Security-Policy; Angular's
+  inline critical-CSS script is disabled so the policy needs no exceptions
+
+### Improved
+- Works on phones: the header wraps with a scrollable navigation row, dropdowns and grids fit
+  the screen, and wide tables scroll inside their cards (checked on iPhone width, all pages)
+- Accessibility: zero axe-core violations (WCAG 2.1 AA + best practice) on every page, light
+  and dark: page headings, landmark for the demo banner, and a real button with
+  `aria-expanded` for audit-trail rows
+- "How it works" strip on the overview (measure, classify, plan, disclose)
+
 ## 0.7.0
 ### Added
 - `openscope.disclosure`: ESRS E1-6 and IFRS S2 §29(a) GHG emissions tables with prior-year and

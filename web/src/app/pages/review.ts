@@ -39,16 +39,22 @@ function storedReviewer(): string {
         </ng-container>
       </os-empty>
     } @else if (run(); as r) {
+      <h1 class="text-xl font-semibold mb-3">Scope 3 review</h1>
       <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
-        <div>
+        <div class="w-full sm:w-auto">
           <label for="run" class="block text-xs text-muted mb-1">Classification run</label>
-          <select id="run" class="input min-w-72" [value]="r.id" (change)="selectRun($event)">
+          <select
+            id="run"
+            class="input w-full sm:w-auto sm:min-w-72"
+            [value]="r.id"
+            (change)="selectRun($event)"
+          >
             @for (x of runs(); track x.id) {
               <option [value]="x.id">{{ x.name }}</option>
             }
           </select>
         </div>
-        <div class="flex items-end gap-2">
+        <div class="flex flex-wrap items-end gap-2 w-full sm:w-auto">
           <div>
             <label for="reviewer" class="block text-xs text-muted mb-1"
               >Reviewer (for the audit log)</label
@@ -216,41 +222,43 @@ function storedReviewer(): string {
         </table>
       </div>
 
-      <section class="card p-4">
+      <section class="card p-4 min-w-0">
         <h2 class="font-semibold mb-1">Audit log</h2>
         <p class="text-sm text-muted mb-3">Every reviewer decision, newest first.</p>
-        <table class="data">
-          <thead>
-            <tr>
-              <th>When</th>
-              <th>Reviewer</th>
-              <th>Line</th>
-              <th>Action</th>
-              <th>Change</th>
-              <th>Note</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (a of audit(); track a.id) {
+        <div class="overflow-x-auto">
+          <table class="data">
+            <thead>
               <tr>
-                <td class="whitespace-nowrap text-xs num">
-                  {{ a.timestamp.replace('T', ' ').slice(0, 19) }}
-                </td>
-                <td>{{ a.reviewer }}</td>
-                <td class="font-mono text-xs">{{ a.line_id }}</td>
-                <td>{{ a.action }}</td>
-                <td class="text-xs">
-                  {{ describe(a.before) }} → <b>{{ describe(a.after) }}</b>
-                </td>
-                <td class="text-xs">{{ a.note }}</td>
+                <th>When</th>
+                <th>Reviewer</th>
+                <th>Line</th>
+                <th>Action</th>
+                <th>Change</th>
+                <th>Note</th>
               </tr>
-            } @empty {
-              <tr>
-                <td colspan="6" class="text-center text-muted py-6">No decisions yet.</td>
-              </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (a of audit(); track a.id) {
+                <tr>
+                  <td class="whitespace-nowrap text-xs num">
+                    {{ a.timestamp.replace('T', ' ').slice(0, 19) }}
+                  </td>
+                  <td>{{ a.reviewer }}</td>
+                  <td class="font-mono text-xs">{{ a.line_id }}</td>
+                  <td>{{ a.action }}</td>
+                  <td class="text-xs">
+                    {{ describe(a.before) }} → <b>{{ describe(a.after) }}</b>
+                  </td>
+                  <td class="text-xs">{{ a.note }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-6">No decisions yet.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </section>
     } @else {
       <p class="text-muted">Loading…</p>

@@ -235,12 +235,13 @@ class Service:
         gwp_set: str,
         reporting_year: int | None,
     ) -> db.Inventory:
+        self._check_name(name)
         path = _save_upload(content)
         try:
             activities = read_activities(path)
         finally:
             path.unlink(missing_ok=True)
-        return self.create_inventory(
+        row = self.create_inventory(
             session,
             name=name,
             source="upload",
@@ -248,6 +249,8 @@ class Service:
             gwp_set=gwp_set,
             reporting_year=reporting_year,
         )
+        self._prune(session)
+        return row
 
     @staticmethod
     def inventory_out(row: db.Inventory, detail: bool = False) -> schemas.InventoryOut:
@@ -315,7 +318,10 @@ class Service:
         threshold: float,
         use_llm: bool,
         currency: str | None,
+        internal: bool = False,
     ) -> db.ClassificationRun:
+        if not internal:
+            self._check_name(name)
         path = _save_upload(content)
         try:
             lines = cl.read_ledger(path, default_currency=currency)
@@ -347,7 +353,35 @@ class Service:
             run.lines.append(self._run_line_row(c))
         session.add(run)
         session.commit()
+        self._prune(session)
         return run
+
+    # -- public demo guards --------------------------------------------------------------------
+    def _check_name(self, name: str) -> None:
+        if self.settings.public_demo and name.strip().lower().startswith("demo:"):
+            raise OpenScopeError("Names starting with 'Demo:' are reserved in the public demo")
+
+    def _prune(self, session: Session) -> None:
+        """Public demo: keep only the newest visitor uploads (demo data is never removed)."""
+        if not self.settings.public_demo:
+            return
+        keep = self.settings.demo_max_uploads
+        visitor_inventories = session.scalars(
+            select(db.Inventory)
+            .where(db.Inventory.source != "demo")
+            .order_by(db.Inventory.id.desc())
+            .offset(keep)
+        ).all()
+        visitor_runs = session.scalars(
+            select(db.ClassificationRun)
+            .where(db.ClassificationRun.name.not_like("Demo:%"))
+            .order_by(db.ClassificationRun.id.desc())
+            .offset(keep)
+        ).all()
+        for row in [*visitor_inventories, *visitor_runs]:
+            session.delete(row)
+        if visitor_inventories or visitor_runs:
+            session.commit()
 
     @staticmethod
     def _run_line_row(c: cl.ClassifiedLine) -> db.RunLine:
@@ -450,6 +484,7 @@ class Service:
     def export_run(
         self, session: Session, run: db.ClassificationRun, body: schemas.ExportIn
     ) -> schemas.ExportOut:
+        self._check_name(body.name)
         classified = [cl.ClassifiedLine.model_validate(r.data) for r in run.lines]
         activities = cl.to_activities(classified)
         if not activities:
@@ -462,6 +497,7 @@ class Service:
             gwp_set=body.gwp_set,
             reporting_year=body.reporting_year,
         )
+        self._prune(session)
         pending = sum(1 for c in classified if c.status == cl.Status.NEEDS_REVIEW)
         return schemas.ExportOut(
             inventory_id=inv.id, activities=len(activities), pending_lines=pending
@@ -560,5 +596,6 @@ class Service:
                 threshold=0.85,
                 use_llm=False,
                 currency=None,
+                internal=True,
             )
         return schemas.DemoOut(inventory_id=inv.id, run_id=run.id)

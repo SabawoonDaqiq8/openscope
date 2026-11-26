@@ -25,8 +25,10 @@ class Settings:
     OPENSCOPE_LLM           "1" to allow Claude classification (needs ANTHROPIC_API_KEY)
     OPENSCOPE_LLM_MODEL     model id                  (default: claude-opus-5-5)
     OPENSCOPE_CORS_ORIGINS  comma-separated origins for local frontend development
-    OPENSCOPE_PUBLIC_DEMO   "1" for a public demo: loads demo data at startup and shows a
-                            banner warning visitors that data is public and temporary
+    OPENSCOPE_PUBLIC_DEMO   "1" for a public demo: loads demo data at startup, shows a banner
+                            that data is public and temporary, disables deletes, limits
+                            uploads to 1 MB, rate-limits writes per visitor and caps stored
+                            visitor uploads (oldest removed first)
     """
 
     db_url: str = "sqlite:///./openscope.db"
@@ -38,6 +40,9 @@ class Settings:
     llm_enabled: bool = False
     llm_model: str = "claude-opus-5-5"
     public_demo: bool = False
+    demo_write_limit: int = 30  # write requests per visitor per window (public demo)
+    demo_write_window_seconds: float = 600.0
+    demo_max_uploads: int = 25  # visitor inventories / ledger runs kept (public demo)
     cors_origins: list[str] = field(default_factory=list)
 
     @classmethod

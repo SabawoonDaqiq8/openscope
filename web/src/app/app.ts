@@ -10,7 +10,9 @@ import { ThemeChoice, ThemeService } from './core/theme.service';
   template: `
     <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:p-2">Skip to content</a>
     <header class="border-b border-line bg-surface">
-      <div class="mx-auto max-w-7xl px-4 h-14 flex items-center gap-6">
+      <div
+        class="mx-auto max-w-7xl px-4 py-2 md:py-0 md:h-14 flex flex-wrap md:flex-nowrap items-center gap-x-6 gap-y-2"
+      >
         <a routerLink="/" class="flex items-center gap-2 font-semibold tracking-tight">
           <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="12" cy="12" r="10" fill="none" stroke="var(--accent)" stroke-width="2" />
@@ -19,7 +21,28 @@ import { ThemeChoice, ThemeService } from './core/theme.service';
           </svg>
           openscope
         </a>
-        <nav class="flex gap-1 text-sm overflow-x-auto" aria-label="Main">
+        <div class="ml-auto md:order-last flex items-center gap-2">
+          <label for="theme" class="sr-only">Theme</label>
+          <select
+            id="theme"
+            class="input text-xs py-1"
+            [value]="theme.choice()"
+            (change)="theme.set($any($event.target).value)"
+          >
+            @for (c of themes; track c) {
+              <option [value]="c">
+                {{ c === 'system' ? 'Auto' : c === 'light' ? 'Light' : 'Dark' }}
+              </option>
+            }
+          </select>
+          <a class="btn text-xs py-1 whitespace-nowrap" href="/docs" target="_blank" rel="noopener"
+            ><span>API<span class="hidden sm:inline">&nbsp;docs</span></span></a
+          >
+        </div>
+        <nav
+          class="w-full md:w-auto order-last md:order-none flex gap-1 text-sm overflow-x-auto -mx-1 px-1 pb-1 md:pb-0"
+          aria-label="Main"
+        >
           @for (item of nav; track item.path) {
             <a
               [routerLink]="item.path"
@@ -30,26 +53,10 @@ import { ThemeChoice, ThemeService } from './core/theme.service';
             >
           }
         </nav>
-        <div class="ml-auto flex items-center gap-2">
-          <label for="theme" class="sr-only">Theme</label>
-          <select
-            id="theme"
-            class="input text-xs py-1"
-            [value]="theme.choice()"
-            (change)="theme.set($any($event.target).value)"
-          >
-            @for (c of themes; track c) {
-              <option [value]="c">
-                {{ c === 'system' ? 'System theme' : c === 'light' ? 'Light' : 'Dark' }}
-              </option>
-            }
-          </select>
-          <a class="btn text-xs py-1" href="/docs" target="_blank" rel="noopener">API docs</a>
-        </div>
       </div>
     </header>
     @if (publicDemo()) {
-      <div class="border-b border-line bg-accent-soft text-sm" role="note">
+      <aside class="border-b border-line bg-accent-soft text-sm" aria-label="Public demo notice">
         <div class="mx-auto max-w-7xl px-4 py-2">
           <b>Public demo.</b> Anyone can see what is uploaded here and data resets regularly. Do not
           upload confidential data.
@@ -61,7 +68,7 @@ import { ThemeChoice, ThemeService } from './core/theme.service';
             >Source on GitHub</a
           >
         </div>
-      </div>
+      </aside>
     }
     <main id="main" class="mx-auto max-w-7xl px-4 py-6">
       <router-outlet />

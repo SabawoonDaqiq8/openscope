@@ -71,13 +71,16 @@ describe('LinesPage', () => {
     expect(el.querySelectorAll('tbody tr')).toHaveLength(1);
   });
 
-  it('expands the audit trail of a row', async () => {
+  it('expands the audit trail with an accessible button', async () => {
     const fixture = await render();
     const el = fixture.nativeElement as HTMLElement;
-    (el.querySelector('tbody tr') as HTMLElement).click();
+    const button = el.querySelector('tbody tr button') as HTMLButtonElement;
+    expect(button.getAttribute('aria-expanded')).toBe('false');
+    button.click();
     await fixture.whenStable();
     fixture.detectChanges();
     expect(el.querySelectorAll('ol li')).toHaveLength(2);
+    expect(button.getAttribute('aria-expanded')).toBe('true');
     expect(el.textContent).toContain('Total: 18.3 kg CO2e');
   });
 });

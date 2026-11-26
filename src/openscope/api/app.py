@@ -27,12 +27,14 @@ from sqlalchemy.orm import Session
 
 from openscope import __version__, disclosure
 from openscope.api import db, schemas
+from openscope.api.protection import SecurityHeadersMiddleware, WriteRateLimitMiddleware
 from openscope.api.service import NotFound, Service
 from openscope.api.settings import Settings
 from openscope.errors import OpenScopeError
 from openscope.pathway import Scenario
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+DEMO_MAX_UPLOAD_BYTES = 1 * 1024 * 1024
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -55,6 +57,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.database = database
 
     app.add_middleware(GZipMiddleware, minimum_size=1024)
+    app.add_middleware(SecurityHeadersMiddleware)
+    if settings.public_demo:
+        app.add_middleware(
+            WriteRateLimitMiddleware,
+            limit=settings.demo_write_limit,
+            window=settings.demo_write_window_seconds,
+        )
     if settings.cors_origins:
         app.add_middleware(
             CORSMiddleware,
@@ -76,10 +85,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     SessionDep = Annotated[Session, Depends(get_session)]
 
+    max_upload = DEMO_MAX_UPLOAD_BYTES if settings.public_demo else MAX_UPLOAD_BYTES
+
     async def read_upload(file: UploadFile) -> bytes:
-        content = await file.read(MAX_UPLOAD_BYTES + 1)
-        if len(content) > MAX_UPLOAD_BYTES:
-            raise HTTPException(413, "File too large (max 10 MB)")
+        content = await file.read(max_upload + 1)
+        if len(content) > max_upload:
+            raise HTTPException(413, f"File too large (max {max_upload // (1024 * 1024)} MB)")
         return content
 
     api = APIRouter(prefix="/api")
@@ -139,6 +150,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @api.delete("/inventories/{inventory_id}", status_code=204, tags=["inventories"])
     def delete_inventory(inventory_id: int, session: SessionDep) -> None:
+        if settings.public_demo:
+            raise HTTPException(403, "Deleting is disabled in the public demo")
         session.delete(service.get_inventory(session, inventory_id))
         session.commit()
 

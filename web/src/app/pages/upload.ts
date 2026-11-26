@@ -17,7 +17,7 @@ import { Notice } from '../shared/ui';
       </div>
     }
 
-    <div class="grid gap-4 lg:grid-cols-2">
+    <div class="grid gap-4 grid-cols-1 lg:grid-cols-2">
       <form class="card p-5 space-y-3" (submit)="$event.preventDefault(); uploadActivities()">
         <h2 class="font-semibold">Activity data → inventory</h2>
         <p class="text-sm text-muted">

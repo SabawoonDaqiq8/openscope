@@ -10,13 +10,13 @@ import { ApiService, InventoryDetail, InventorySummary, errorMessage } from '../
 import { orderedColumns, rankedBars, scopeComposition } from '../charts/options';
 import { METHOD_LABELS, percent, tco2e } from '../core/format';
 import { ThemeService } from '../core/theme.service';
-import { ChartCard, EmptyState, Notice, StatTile } from '../shared/ui';
+import { ChartCard, EmptyState, HowItWorks, Notice, StatTile } from '../shared/ui';
 
 echarts.use([BarChart, GridComponent, LegendComponent, TooltipComponent, CanvasRenderer]);
 
 @Component({
   selector: 'os-overview',
-  imports: [RouterLink, NgxEchartsDirective, StatTile, Notice, ChartCard, EmptyState],
+  imports: [RouterLink, NgxEchartsDirective, StatTile, Notice, ChartCard, EmptyState, HowItWorks],
   providers: [provideEchartsCore({ echarts })],
   template: `
     @if (error()) {
@@ -33,16 +33,23 @@ echarts.use([BarChart, GridComponent, LegendComponent, TooltipComponent, CanvasR
         </ng-container>
       </os-empty>
     } @else if (inv(); as d) {
+      <h1 class="sr-only">Emissions overview</h1>
+      <os-how-it-works [linesLink]="['/overview', d.id, 'lines']" />
       <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
-        <div>
+        <div class="w-full sm:w-auto">
           <label for="inv" class="block text-xs text-muted mb-1">Inventory</label>
-          <select id="inv" class="input min-w-72" [value]="d.id" (change)="select($event)">
+          <select
+            id="inv"
+            class="input w-full sm:w-auto sm:min-w-72"
+            [value]="d.id"
+            (change)="select($event)"
+          >
             @for (i of inventories(); track i.id) {
               <option [value]="i.id">{{ i.name }}</option>
             }
           </select>
         </div>
-        <div class="flex items-center gap-3 text-sm text-muted">
+        <div class="flex flex-wrap items-center gap-3 text-sm text-muted">
           <span>GWP {{ d.gwp_set }}</span>
           @if (d.reporting_year) {
             <span>· Reporting year {{ d.reporting_year }}</span>
@@ -109,7 +116,7 @@ echarts.use([BarChart, GridComponent, LegendComponent, TooltipComponent, CanvasR
         />
       </div>
 
-      <div class="grid gap-4 lg:grid-cols-2 items-start mb-4">
+      <div class="grid gap-4 grid-cols-1 lg:grid-cols-2 items-start mb-4">
         <os-chart-card title="Emissions by scope" subtitle="Share of total, tCO₂e">
           <div chart>
             <div echarts [options]="scopeChart()" class="h-24"></div>
@@ -175,7 +182,7 @@ echarts.use([BarChart, GridComponent, LegendComponent, TooltipComponent, CanvasR
         </os-chart-card>
       </div>
 
-      <div class="grid gap-4 lg:grid-cols-2 items-start">
+      <div class="grid gap-4 grid-cols-1 lg:grid-cols-2 items-start">
         <os-chart-card title="Scope 3 by category" subtitle="tCO₂e, GHG Protocol categories">
           @if (d.analytics.totals.scope3_by_category.length) {
             <div
@@ -208,46 +215,50 @@ echarts.use([BarChart, GridComponent, LegendComponent, TooltipComponent, CanvasR
         <section class="card p-4">
           <h2 class="font-semibold">Hotspots</h2>
           <p class="text-sm text-muted mb-3">Largest line items in the headline total</p>
-          <table class="data">
-            <thead>
-              <tr>
-                <th>Line</th>
-                <th>Scope</th>
-                <th class="text-right">tCO₂e</th>
-                <th class="text-right">Share</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (h of d.analytics.hotspots; track h.activity_id) {
+          <div class="overflow-x-auto">
+            <table class="data">
+              <thead>
                 <tr>
-                  <td>
-                    <div>{{ h.description || h.activity_id }}</div>
-                    <div class="text-xs text-muted">{{ h.activity_id }}</div>
-                  </td>
-                  <td class="whitespace-nowrap">
-                    <span
-                      class="swatch mr-1.5"
-                      [style.background]="tokens().scope[h.scope - 1]"
-                    ></span>
-                    {{ h.scope }}{{ h.scope3_category ? ' · cat ' + h.scope3_category : '' }}
-                  </td>
-                  <td class="text-right num">{{ fmt(h.tco2e) }}</td>
-                  <td class="text-right num">{{ pct(h.share) }}</td>
+                  <th>Line</th>
+                  <th>Scope</th>
+                  <th class="text-right">tCO₂e</th>
+                  <th class="text-right">Share</th>
                 </tr>
-              }
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                @for (h of d.analytics.hotspots; track h.activity_id) {
+                  <tr>
+                    <td>
+                      <div>{{ h.description || h.activity_id }}</div>
+                      <div class="text-xs text-muted">{{ h.activity_id }}</div>
+                    </td>
+                    <td class="whitespace-nowrap">
+                      <span
+                        class="swatch mr-1.5"
+                        [style.background]="tokens().scope[h.scope - 1]"
+                      ></span>
+                      {{ h.scope }}{{ h.scope3_category ? ' · cat ' + h.scope3_category : '' }}
+                    </td>
+                    <td class="text-right num">{{ fmt(h.tco2e) }}</td>
+                    <td class="text-right num">{{ pct(h.share) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
           <h3 class="font-semibold mt-5 mb-2 text-sm">By calculation method</h3>
-          <table class="data">
-            <tbody>
-              @for (m of d.analytics.by_method; track m.method) {
-                <tr>
-                  <td>{{ methodLabel(m.method) }}</td>
-                  <td class="text-right num">{{ fmt(m.tco2e) }} tCO₂e</td>
-                </tr>
-              }
-            </tbody>
-          </table>
+          <div class="overflow-x-auto">
+            <table class="data">
+              <tbody>
+                @for (m of d.analytics.by_method; track m.method) {
+                  <tr>
+                    <td>{{ methodLabel(m.method) }}</td>
+                    <td class="text-right num">{{ fmt(m.tco2e) }} tCO₂e</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         </section>
       </div>
     } @else {
