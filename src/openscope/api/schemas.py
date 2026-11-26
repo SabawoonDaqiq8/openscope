@@ -250,6 +250,7 @@ class DisclosureRowOut(BaseModel):
     note: str
     change_vs_prior: float | None
     change_vs_base: float | None
+    section: str
 
 
 class DisclosureCheckOut(BaseModel):

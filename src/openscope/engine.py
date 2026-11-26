@@ -127,6 +127,21 @@ class Calculator:
                     f"GWP set {self.gwp_set.value}; disclose or replace with per-gas factor"
                 )
 
+        energy_kwh = biogenic = None
+        if factor.energy_kwh_per_unit is not None:
+            energy_kwh = qty * factor.energy_kwh_per_unit
+            src = factor.energy_source.value.replace("_", " ") if factor.energy_source else "energy"
+            trace.append(
+                f"Energy: {_fmt(qty)} × {_fmt(factor.energy_kwh_per_unit)} kWh/"
+                f"{factor.activity_unit} = {_fmt(energy_kwh)} kWh ({src})"
+            )
+        if factor.biogenic_co2_kg:
+            biogenic = qty * factor.biogenic_co2_kg
+            trace.append(
+                f"Biogenic CO2 (outside the scopes, not in the total): {_fmt(qty)} × "
+                f"{_fmt(factor.biogenic_co2_kg)} kg/{factor.activity_unit} = {_fmt(biogenic)} kg"
+            )
+
         dq = quality.score(activity.method, factor, self.reporting_year)
         trace.append(f"Total: {_fmt(co2e)} kg CO2e; data quality {dq}/5 ({activity.method.value})")
 
@@ -149,6 +164,9 @@ class Calculator:
             co2e_kg=co2e,
             data_quality_score=dq,
             trace=trace,
+            energy_kwh=energy_kwh,
+            energy_source=factor.energy_source,
+            biogenic_co2_kg=biogenic,
         )
 
     def calculate_many(self, activities: Iterable[ActivityRecord]) -> BatchResult:

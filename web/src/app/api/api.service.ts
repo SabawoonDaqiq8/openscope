@@ -30,6 +30,9 @@ export interface DisclosureQuery {
   net_revenue?: number | null;
   revenue_currency?: string | null;
   ets_share?: number | null;
+  grid_fossil?: number | null;
+  grid_nuclear?: number | null;
+  grid_renewable?: number | null;
 }
 
 function params(values: Record<string, string | number | boolean | null | undefined>) {

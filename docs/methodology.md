@@ -142,3 +142,36 @@ GWPs, Scope 2 market-based fallback, missing net revenue), **info** (unreported 
 categories, missing comparatives or ETS share, biogenic CO2 not calculated, a high spend-based
 share). Not covered: E1-4 targets, E1-5 energy, E1-7 removals and credits, consolidation scope
 (§50), and XBRL tagging.
+
+## Energy consumption and mix (ESRS E1-5)
+
+`openscope.energy` calculates energy for own operations: Scope 1 fuels and Scope 2 purchased
+electricity and heat. Scope 3 is excluded.
+
+* **Energy content**: each factor can carry `energy_kwh_per_unit` (net calorific value) and an
+  `energy_source` (fossil fuel, renewable fuel, electricity, certificate-backed renewable
+  electricity, heat, or non-energy for refrigerant leaks and process emissions). For DESNZ the
+  importer derives the net CV from the dataset itself: the same fuel is published per unit and
+  per kWh (Net CV), so `factor(unit) / factor(kWh Net CV)` is the energy per unit (diesel
+  ≈ 9.9 kWh/L, natural gas ≈ 0.90 kWh net per kWh gross). Biofuels are published per GJ rather
+  than per kWh; the GJ factor is used as the reference, as published.
+* **Purchased electricity is counted once per site**: from the location-based rows (or the
+  market-based rows where a site has no location-based data). The renewable part is the energy
+  backed by energy attribute certificates on the market-based rows, capped at the site's
+  consumption.
+* **Source mix**: E1-5 §37 splits consumption into fossil (a), nuclear (b) and renewable (c).
+  The rest of the purchased electricity is split only when a supplier or grid mix is given;
+  otherwise it is reported as *undetermined*, fossil and nuclear totals are left blank, and a
+  readiness warning is raised. The fossil fuels burnt on site are always shown.
+* Not covered yet: self-generated non-fuel renewables (E1-5 §37(c)(iii)), the fossil-fuel
+  breakdown for high climate impact sectors (§38), the energy content of vehicle-distance
+  factors (km), and the source mix of purchased heat.
+
+## Biogenic CO2
+
+CO2 from burning or decomposing biomass is reported **outside the scopes**, separately from
+the Scope 1, 2 and 3 totals (ESRS E1-6 application requirements). The DESNZ importer links each
+"Outside of scopes" factor to the in-scope factor with the same fuel and unit, but only when the
+match is unambiguous (54 factors, e.g. diesel and petrol biofuel blends, biofuels, and UK grid
+electricity, which includes biomass generation). Scope 2 biogenic CO2 uses the location-based
+rows, so dual-reported electricity is not counted twice.

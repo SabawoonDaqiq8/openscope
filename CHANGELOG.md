@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.8.0
+### Added
+- **ESRS E1-5 energy consumption and mix**: fossil (§37(a)), nuclear (§37(b)) and renewable
+  (§37(c)(i)-(iii)) energy in MWh, total, renewable share and energy intensity, in the ESRS
+  disclosure, API, CLI (`--grid-mix`) and dashboard (grid-mix inputs, section headings)
+- **Biogenic CO2** reported outside the scopes, by scope, in the ESRS table
+- Factors carry `energy_kwh_per_unit`, `energy_source` and `biogenic_co2_kg`; results carry
+  `energy_kwh` and `biogenic_co2_kg`, with audit-trail lines
+- DESNZ importer derives net calorific values from the dataset (157 factors) and links
+  outside-of-scopes biogenic CO2 to in-scope factors when the match is unambiguous (54)
+- `openscope.energy` module: electricity counted once per site, certificate-backed renewables
+  capped at consumption, optional grid mix
+- Readiness checks for undetermined electricity or heat mix, missing energy content and
+  self-generated renewables
+
 ## 0.7.2
 ### Added
 - End-to-end test suite (Playwright, 27 tests) against the production build in public-demo

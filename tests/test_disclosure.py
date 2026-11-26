@@ -114,7 +114,12 @@ def test_renderers() -> None:
     s1 = next(x for x in data if x["key"] == "scope1")
     assert float(s1["N 2025"]) == 100 and float(s1["% N / N-1"]) == pytest.approx(-16.67, abs=0.01)
     md = to_markdown(d)
-    assert md.startswith("# ESRS E1-6") and "| 2024 | 2025 |" in md and "## Readiness checks" in md
+    assert (
+        md.startswith("# ESRS E1")
+        and "## E1-6 Gross Scopes" in md
+        and "| 2024 | 2025 |" in md
+        and "## Readiness checks" in md
+    )
 
 
 def test_cli_exit_code_reflects_blockers(tmp_path: Path) -> None:
@@ -158,7 +163,7 @@ def test_api_disclosure_and_export(tmp_path: Path) -> None:
     r = c.get(f"/api/inventories/{inv}/disclosure/export", params={"format": "md"})
     assert r.status_code == 200
     assert "attachment" in r.headers["content-disposition"]
-    assert r.text.startswith("# ESRS E1-6")
+    assert r.text.startswith("# ESRS E1") and "## E1-5 Energy consumption and mix" in r.text
     r = c.get(f"/api/inventories/{inv}/disclosure/export",
               params={"format": "csv", "framework": "issb"})  # fmt: skip
     assert "ifrs-s2" in r.headers["content-disposition"]

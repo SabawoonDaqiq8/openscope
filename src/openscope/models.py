@@ -87,6 +87,17 @@ class FactorStatus(StrEnum):
     CUSTOM = "custom"  # supplied by the user (e.g. supplier-specific)
 
 
+class EnergySource(StrEnum):
+    """What an activity's energy is, for ESRS E1-5 energy consumption and mix."""
+
+    FOSSIL_FUEL = "fossil_fuel"
+    RENEWABLE_FUEL = "renewable_fuel"  # biofuels, biogas, biomass
+    ELECTRICITY = "electricity"  # purchased grid electricity, source mix not known
+    RENEWABLE_ELECTRICITY = "renewable_electricity"  # backed by energy attribute certificates
+    HEAT = "heat"  # purchased heat, steam or cooling
+    NON_ENERGY = "non_energy"  # refrigerant leaks, process emissions: no energy consumed
+
+
 class EmissionFactor(BaseModel):
     """An emission factor expressed per one ``activity_unit``.
 
@@ -112,6 +123,11 @@ class EmissionFactor(BaseModel):
     source_url: str | None = None
     status: FactorStatus = FactorStatus.REFERENCE
     notes: str | None = None
+    # energy content per activity unit (kWh, net calorific value) and its source, for E1-5
+    energy_kwh_per_unit: float | None = Field(default=None, ge=0)
+    energy_source: EnergySource | None = None
+    # biogenic CO2 per activity unit (kg), reported outside the scopes
+    biogenic_co2_kg: float | None = Field(default=None, ge=0)
 
     @model_validator(mode="after")
     def _has_values(self) -> EmissionFactor:
@@ -181,6 +197,9 @@ class EmissionResult(BaseModel):
     co2e_kg: float
     data_quality_score: int = Field(ge=1, le=5)
     trace: list[str]
+    energy_kwh: float | None = None
+    energy_source: EnergySource | None = None
+    biogenic_co2_kg: float | None = None
 
     @property
     def co2e_t(self) -> float:

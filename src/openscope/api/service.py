@@ -30,6 +30,7 @@ from openscope import classify as cl
 from openscope.api import db, schemas
 from openscope.api.settings import Settings
 from openscope.classify.memory import MemoryEntry, SupplierMemory
+from openscope.energy import GridMix
 from openscope.engine import BatchResult
 from openscope.errors import OpenScopeError
 from openscope.io import read_activities
@@ -529,6 +530,7 @@ class Service:
         net_revenue: float | None,
         revenue_currency: str | None,
         ets_share: float | None,
+        grid_mix: GridMix | None = None,
     ) -> disclosure.Disclosure:
         prior = self._period(self.get_inventory(session, prior_id)) if prior_id else None
         base = self._period(self.get_inventory(session, base_id)) if base_id else None
@@ -541,6 +543,7 @@ class Service:
             revenue_currency=revenue_currency,
             ets_share=ets_share,
             calculation_errors=len(row.errors),
+            grid_mix=grid_mix,
         )
 
     # -- pathways --------------------------------------------------------------------------------

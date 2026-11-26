@@ -107,7 +107,30 @@ test('disclosure: ESRS table with comparatives, download and IFRS S2 toggle', as
     page.waitForEvent('download'),
     page.getByRole('link', { name: 'Markdown' }).click(),
   ]);
-  expect(download.suggestedFilename()).toBe('openscope-esrs-e1-6-2025.md');
+  expect(download.suggestedFilename()).toBe('openscope-esrs-e1-2025.md');
+
+  // E1-5 energy section and biogenic CO2 (outside the scopes)
+  await expect(
+    page.getByRole('columnheader', { name: /E1-5 · Energy consumption and mix/ }),
+  ).toBeVisible();
+  await expect(
+    page.locator('tr', { has: page.getByRole('cell', { name: /^Total energy consumption/ }) }),
+  ).toContainText('2,033.3');
+  await expect(page.locator('tr', { hasText: 'Biogenic CO2 emissions' })).toContainText('103.7');
+  const fossil = page.locator('tr', {
+    has: page.getByRole('cell', { name: /^Total fossil energy consumption/ }),
+  });
+  await expect(page.getByText(/250 MWh of purchased electricity is not covered/)).toBeVisible();
+  for (const [label, value] of [
+    ['Fossil', '40'],
+    ['Nuclear', '15'],
+    ['Renewable', '45'],
+  ]) {
+    await page.getByLabel(label, { exact: true }).fill(value);
+    await page.getByLabel(label, { exact: true }).dispatchEvent('change');
+  }
+  await expect(fossil).toContainText('1,283.3'); // 1,183.3 MWh fuels + 40 % of 250 MWh
+  await expect(page.getByText(/250 MWh of purchased electricity is not covered/)).toHaveCount(0);
 
   await page.getByRole('button', { name: 'IFRS S2' }).click();
   await expect(

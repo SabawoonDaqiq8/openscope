@@ -11,6 +11,7 @@ import {
 import { EmptyState, Notice } from '../shared/ui';
 
 type Framework = 'esrs' | 'issb';
+type GridKey = 'grid_fossil' | 'grid_nuclear' | 'grid_renewable';
 
 const n1 = new Intl.NumberFormat('en-GB', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
@@ -123,6 +124,27 @@ const n1 = new Intl.NumberFormat('en-GB', { minimumFractionDigits: 1, maximumFra
               (change)="etsShare.set(toNum($event))"
             />
           </label>
+          <fieldset class="sm:col-span-2 lg:col-span-6">
+            <legend class="text-sm">
+              Mix of purchased electricity not covered by renewable certificates (%, for E1-5)
+            </legend>
+            <div class="mt-1 grid grid-cols-3 gap-2 max-w-md">
+              @for (g of gridFields; track g.key) {
+                <label class="text-xs text-muted"
+                  >{{ g.label }}
+                  <input
+                    class="input w-full mt-0.5"
+                    type="number"
+                    min="0"
+                    max="100"
+                    [placeholder]="g.placeholder"
+                    [value]="grid()[g.key] ?? ''"
+                    (change)="setGrid(g.key, toNum($event))"
+                  />
+                </label>
+              }
+            </div>
+          </fieldset>
         }
       </section>
 
@@ -160,7 +182,14 @@ const n1 = new Intl.NumberFormat('en-GB', { minimumFractionDigits: 1, maximumFra
                 </tr>
               </thead>
               <tbody>
-                @for (r of d.rows; track r.key) {
+                @for (r of d.rows; track r.key; let i = $index) {
+                  @if (i === 0 || d.rows[i - 1].section !== r.section) {
+                    <tr>
+                      <th colspan="7" scope="colgroup" class="bg-surface-2 text-ink">
+                        {{ sectionTitle(r.section) }}
+                      </th>
+                    </tr>
+                  }
                   <tr [class.font-semibold]="isTotal(r.key)">
                     <td [style.padding-left.rem]="0.75 + r.indent * 1.25">
                       {{ r.label }}
@@ -264,6 +293,16 @@ export class DisclosurePage {
   protected readonly netRevenue = signal<number | null>(null);
   protected readonly currency = signal('EUR');
   protected readonly etsShare = signal<number | null>(null);
+  protected readonly grid = signal<Record<GridKey, number | null>>({
+    grid_fossil: null,
+    grid_nuclear: null,
+    grid_renewable: null,
+  });
+  protected readonly gridFields: { key: GridKey; label: string; placeholder: string }[] = [
+    { key: 'grid_fossil', label: 'Fossil', placeholder: 'e.g. 40' },
+    { key: 'grid_nuclear', label: 'Nuclear', placeholder: 'e.g. 15' },
+    { key: 'grid_renewable', label: 'Renewable', placeholder: 'e.g. 45' },
+  ];
 
   protected readonly others = computed(() =>
     this.inventories().filter((i) => i.id !== this.inventoryId()),
@@ -275,6 +314,9 @@ export class DisclosurePage {
     net_revenue: this.framework() === 'esrs' ? this.netRevenue() : null,
     revenue_currency: this.framework() === 'esrs' && this.netRevenue() ? this.currency() : null,
     ets_share: this.framework() === 'esrs' ? this.etsShare() : null,
+    ...(this.framework() === 'esrs' && Object.values(this.grid()).every((v) => v !== null)
+      ? this.grid()
+      : {}),
   }));
   protected readonly blockers = computed(
     () => this.d()?.checks.filter((c) => c.level === 'blocker').length ?? 0,
@@ -334,7 +376,19 @@ export class DisclosurePage {
     return `${v > 0 ? '+' : ''}${(v * 100).toFixed(1)}%`;
   }
   protected isTotal(key: string): boolean {
-    return key.startsWith('total_');
+    return key.startsWith('total_') || key === 'energy_total';
+  }
+  protected setGrid(key: GridKey, value: number | null): void {
+    this.grid.update((g) => ({ ...g, [key]: value }));
+  }
+  protected sectionTitle(section: string): string {
+    return (
+      {
+        'E1-6': 'E1-6 · Gross Scopes 1, 2, 3 and total GHG emissions',
+        'E1-5': 'E1-5 · Energy consumption and mix',
+        S2: 'IFRS S2 §29(a) · Greenhouse gas emissions',
+      }[section] ?? section
+    );
   }
   protected icon(level: string): string {
     return { blocker: '✕', warning: '⚠', info: 'ⓘ' }[level] ?? '•';

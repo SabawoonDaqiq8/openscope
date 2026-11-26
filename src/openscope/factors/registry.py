@@ -6,7 +6,8 @@ supplier-specific…) can be versioned, diffed and reviewed like code.
 CSV columns
 -----------
 factor_id, name, activity_unit, co2_kg, ch4_kg, n2o_kg, other_gases, co2e_kg, gwp_basis,
-scope, scope3_category, scope2_method, region, year, source, source_url, status, notes
+scope, scope3_category, scope2_method, region, year, source, source_url, status, notes,
+energy_kwh_per_unit, energy_source, biogenic_co2_kg   (optional; for ESRS E1-5 and biogenic CO2)
 
 ``other_gases`` is a ``;``-separated list of ``GAS=kg`` pairs, e.g. ``HFC-134A=1``.
 Empty cells are treated as missing.
@@ -20,7 +21,14 @@ from importlib import resources
 from pathlib import Path
 
 from openscope.errors import FactorError
-from openscope.models import EmissionFactor, FactorStatus, Scope, Scope2Method, Scope3Category
+from openscope.models import (
+    EmissionFactor,
+    EnergySource,
+    FactorStatus,
+    Scope,
+    Scope2Method,
+    Scope3Category,
+)
 
 _BUNDLED = "sample_factors.csv"
 _DATASETS = {
@@ -49,6 +57,9 @@ CSV_COLUMNS = [
     "source_url",
     "status",
     "notes",
+    "energy_kwh_per_unit",
+    "energy_source",
+    "biogenic_co2_kg",
 ]
 
 
@@ -77,6 +88,9 @@ def _to_row(f: EmissionFactor) -> dict[str, str]:
         "source_url": f.source_url or "",
         "status": f.status.value,
         "notes": f.notes or "",
+        "energy_kwh_per_unit": _num(f.energy_kwh_per_unit),
+        "energy_source": f.energy_source.value if f.energy_source else "",
+        "biogenic_co2_kg": _num(f.biogenic_co2_kg),
     }
 
 
@@ -117,6 +131,9 @@ def _parse_row(row: dict[str, str], line: int, origin: str) -> EmissionFactor:
             source_url=_opt(row, "source_url"),
             status=FactorStatus(_opt(row, "status") or "reference"),
             notes=_opt(row, "notes"),
+            energy_kwh_per_unit=float(e) if (e := _opt(row, "energy_kwh_per_unit")) else None,
+            energy_source=EnergySource(src) if (src := _opt(row, "energy_source")) else None,
+            biogenic_co2_kg=float(b) if (b := _opt(row, "biogenic_co2_kg")) else None,
         )
     except (KeyError, ValueError) as exc:
         raise FactorError(f"{origin}:{line}: invalid factor row: {exc}") from exc

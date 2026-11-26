@@ -14,6 +14,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from openscope import __version__
+from openscope.energy import GridMix
 from openscope.engine import Calculator
 from openscope.errors import OpenScopeError
 from openscope.factors import FactorRegistry
@@ -130,6 +131,8 @@ def cmd_import_desnz(args: argparse.Namespace) -> int:
     print(f"  per-gas (re-weightable to AR6): {report.per_gas}")
     print(f"  CO2e total only:                {report.total_only}")
     print(f"  energy-conversion rows skipped: {report.skipped_energy_rows}")
+    print(f"  with energy content (E1-5):     {report.energy_linked}")
+    print(f"  with biogenic CO2 linked:       {report.biogenic_linked}")
     if report.skipped_unknown_unit:
         print(f"  skipped (unmapped units):       {report.skipped_unknown_unit}")
     return 0
@@ -199,6 +202,17 @@ def cmd_pathway(args: argparse.Namespace) -> int:
     return 0
 
 
+def _grid_mix(value: str | None) -> GridMix | None:
+    """'40,15,45' -> fossil / nuclear / renewable percentages."""
+    if not value:
+        return None
+    try:
+        fossil, nuclear, renewable = (float(x) / 100 for x in value.split(","))
+        return GridMix(fossil, nuclear, renewable)
+    except ValueError as exc:
+        raise OpenScopeError(f"--grid-mix expects 'fossil,nuclear,renewable' %: {exc}") from exc
+
+
 def cmd_disclose(args: argparse.Namespace) -> int:
     from openscope import disclosure as dc
 
@@ -225,6 +239,7 @@ def cmd_disclose(args: argparse.Namespace) -> int:
         revenue_currency=args.currency,
         ets_share=args.ets_share / 100 if args.ets_share is not None else None,
         calculation_errors=errors,
+        grid_mix=_grid_mix(args.grid_mix),
     )
     render = {"md": dc.to_markdown, "csv": dc.to_csv, "json": dc.to_json}[args.format]
     text = render(d)
@@ -363,6 +378,11 @@ def build_parser() -> argparse.ArgumentParser:
     ds.add_argument("--net-revenue", type=float, help="Net revenue (for GHG intensity)")
     ds.add_argument("--currency", help="Currency of net revenue")
     ds.add_argument("--ets-share", type=float, help="%% of Scope 1 under regulated ETS")
+    ds.add_argument(
+        "--grid-mix",
+        help="Mix of purchased electricity not covered by certificates, as "
+        "'fossil,nuclear,renewable' %% (e.g. 40,15,45), for ESRS E1-5",
+    )
     ds.add_argument("--gwp", default="AR6", choices=["AR5", "AR6"])
     ds.add_argument("--format", default="md", choices=["md", "csv", "json"])
     ds.add_argument("--out", help="Write to a file instead of stdout")

@@ -446,6 +446,10 @@
             "title": "Reference",
             "type": "string"
           },
+          "section": {
+            "title": "Section",
+            "type": "string"
+          },
           "unit": {
             "title": "Unit",
             "type": "string"
@@ -462,7 +466,8 @@
           "indent",
           "note",
           "change_vs_prior",
-          "change_vs_base"
+          "change_vs_base",
+          "section"
         ],
         "title": "DisclosureRowOut",
         "type": "object"
@@ -1873,7 +1878,7 @@
   "info": {
     "description": "Open-source, auditable carbon accounting: GHG Protocol Scope 1, 2 and 3.",
     "title": "openscope API",
-    "version": "0.7.2"
+    "version": "0.8.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -2599,6 +2604,60 @@
               ],
               "title": "Ets Share"
             }
+          },
+          {
+            "in": "query",
+            "name": "grid_fossil",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 100,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grid Fossil"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grid_nuclear",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 100,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grid Nuclear"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grid_renewable",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 100,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grid Renewable"
+            }
           }
         ],
         "responses": {
@@ -2753,6 +2812,60 @@
                 }
               ],
               "title": "Ets Share"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grid_fossil",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 100,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grid Fossil"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grid_nuclear",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 100,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grid Nuclear"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grid_renewable",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 100,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grid Renewable"
             }
           }
         ],

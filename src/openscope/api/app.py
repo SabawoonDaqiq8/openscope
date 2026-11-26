@@ -30,6 +30,7 @@ from openscope.api import db, schemas
 from openscope.api.protection import SecurityHeadersMiddleware, WriteRateLimitMiddleware
 from openscope.api.service import NotFound, Service
 from openscope.api.settings import Settings
+from openscope.energy import GridMix
 from openscope.errors import OpenScopeError
 from openscope.pathway import Scenario
 
@@ -165,7 +166,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         net_revenue: float | None,
         revenue_currency: str | None,
         ets_share: float | None,
+        grid: tuple[float | None, float | None, float | None] = (None, None, None),
     ) -> disclosure.Disclosure:
+        grid_mix = None
+        if any(v is not None for v in grid):
+            fossil, nuclear, renewable = (v or 0.0 for v in grid)
+            try:
+                grid_mix = GridMix(fossil / 100, nuclear / 100, renewable / 100)
+            except ValueError as exc:
+                raise HTTPException(422, f"Grid mix: {exc}") from exc
         return service.disclosure(
             session,
             service.get_inventory(session, inventory_id),
@@ -175,6 +184,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             net_revenue=net_revenue,
             revenue_currency=revenue_currency,
             ets_share=ets_share / 100 if ets_share is not None else None,
+            grid_mix=grid_mix,
         )
 
     @api.get("/inventories/{inventory_id}/disclosure", tags=["disclosure"])
@@ -187,9 +197,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         net_revenue: Annotated[float | None, Query(gt=0)] = None,
         revenue_currency: Annotated[str | None, Query(max_length=3)] = None,
         ets_share: Annotated[float | None, Query(ge=0, le=100)] = None,
+        grid_fossil: Annotated[float | None, Query(ge=0, le=100)] = None,
+        grid_nuclear: Annotated[float | None, Query(ge=0, le=100)] = None,
+        grid_renewable: Annotated[float | None, Query(ge=0, le=100)] = None,
     ) -> schemas.DisclosureOut:
         d = _disclosure(inventory_id, session, framework, prior_id, base_id, net_revenue,
-                        revenue_currency, ets_share)  # fmt: skip
+                        revenue_currency, ets_share,
+                        (grid_fossil, grid_nuclear, grid_renewable))  # fmt: skip
         return schemas.DisclosureOut.model_validate(d.as_dict())
 
     @api.get("/inventories/{inventory_id}/disclosure/export", tags=["disclosure"])
@@ -203,15 +217,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         net_revenue: Annotated[float | None, Query(gt=0)] = None,
         revenue_currency: Annotated[str | None, Query(max_length=3)] = None,
         ets_share: Annotated[float | None, Query(ge=0, le=100)] = None,
+        grid_fossil: Annotated[float | None, Query(ge=0, le=100)] = None,
+        grid_nuclear: Annotated[float | None, Query(ge=0, le=100)] = None,
+        grid_renewable: Annotated[float | None, Query(ge=0, le=100)] = None,
     ) -> Response:
         d = _disclosure(inventory_id, session, framework, prior_id, base_id, net_revenue,
-                        revenue_currency, ets_share)  # fmt: skip
+                        revenue_currency, ets_share,
+                        (grid_fossil, grid_nuclear, grid_renewable))  # fmt: skip
         body, media = {
             "csv": (disclosure.to_csv, "text/csv"),
             "md": (disclosure.to_markdown, "text/markdown"),
             "json": (disclosure.to_json, "application/json"),
         }[format]
-        name = f"openscope-{framework}-e1-6-{d.reporting_year or inventory_id}.{format}"
+        name = f"openscope-{framework}-e1-{d.reporting_year or inventory_id}.{format}"
         if framework == "issb":
             name = f"openscope-ifrs-s2-ghg-{d.reporting_year or inventory_id}.{format}"
         return Response(

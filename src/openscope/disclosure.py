@@ -32,6 +32,7 @@ from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
 from enum import StrEnum
 
+from openscope.energy import GridMix, biogenic_t, energy_mix
 from openscope.inventory import Inventory
 from openscope.models import (
     CalculationMethod,
@@ -71,6 +72,7 @@ class Row:
     base: float | None = None
     indent: int = 0
     note: str = ""
+    section: str = "E1-6"
 
     @property
     def change_vs_prior(self) -> float | None:
@@ -133,7 +135,9 @@ class Disclosure:
 
 
 # -- metrics ---------------------------------------------------------------------------------
-def _metrics(inv: Inventory, net_revenue: float | None) -> dict[str, float | None]:
+def _metrics(
+    inv: Inventory, net_revenue: float | None, grid_mix: GridMix | None = None
+) -> dict[str, float | None]:
     s1 = inv.scope1_t()
     s2l = inv.scope2_t(Scope2Method.LOCATION_BASED)
     s2m = inv.scope2_t(Scope2Method.MARKET_BASED)
@@ -146,13 +150,30 @@ def _metrics(inv: Inventory, net_revenue: float | None) -> dict[str, float | Non
         "scope3": s3,
         "total_location": total_l,
         "total_market": total_m,
+        "biogenic_scope1": biogenic_t(inv, Scope.SCOPE_1),
+        "biogenic_scope2": biogenic_t(inv, Scope.SCOPE_2),
+        "biogenic_scope3": biogenic_t(inv, Scope.SCOPE_3),
     }
     for cat, v in inv.scope3_by_category_t().items():
         out[f"scope3_cat_{int(cat)}"] = v
+    m = energy_mix(inv, grid_mix)
+    out |= {
+        "energy_fossil": m.fossil,
+        "energy_fossil_fuels": m.fossil_fuels,
+        "energy_nuclear": m.nuclear,
+        "energy_renewable": m.renewable,
+        "energy_renewable_fuels": m.renewable_fuels,
+        "energy_renewable_purchased": m.renewable_purchased,
+        "energy_self_generated": None,
+        "energy_undetermined": m.undetermined,
+        "energy_total": m.total,
+        "energy_renewable_share": m.renewable / m.total * 100 if m.total else None,
+    }
     if net_revenue:
-        # tCO2e per million currency units, for readability
+        # per million currency units, for readability
         out["intensity_location"] = total_l / net_revenue * 1e6
         out["intensity_market"] = total_m / net_revenue * 1e6
+        out["energy_intensity"] = m.total / net_revenue * 1e6
     return out
 
 
@@ -171,6 +192,7 @@ def _checks(
     net_revenue: float | None,
     ets_share: float | None,
     prior: Period | None,
+    grid_mix: GridMix | None = None,
 ) -> list[Check]:
     inv = period.inventory
     checks: list[Check] = []
@@ -260,19 +282,61 @@ def _checks(
                 "No prior-year inventory selected; comparative figures are left blank.",
             )
         )
+    biogenic = sum(biogenic_t(inv, s) for s in Scope)
     checks.append(
         Check(
             Level.INFO,
             "biogenic-co2",
-            "Biogenic CO2 from biomass combustion or biodegradation is reported separately from "
-            "the scopes and is not calculated by openscope yet.",
+            f"Biogenic CO2 of {biogenic:,.1f} t is reported outside the scopes. It is calculated "
+            "only where the factor dataset publishes it (DESNZ outside-of-scopes factors)."
+            if biogenic
+            else "No biogenic CO2 found: none of the factors used publish a biogenic CO2 "
+            "component. Check whether biomass or biofuels are used.",
         )
     )
+    if framework == Framework.ESRS:
+        m = energy_mix(inv, grid_mix)
+        if m.electricity_other and grid_mix is None:
+            checks.append(
+                Check(
+                    Level.WARNING,
+                    "energy-mix",
+                    f"{m.electricity_other:,.0f} MWh of purchased electricity is not covered by "
+                    "renewable certificates and has no fossil / nuclear / renewable split, which "
+                    "E1-5 §37 requires. Enter the supplier or grid mix shares.",
+                )
+            )
+        if m.heat:
+            checks.append(
+                Check(
+                    Level.WARNING,
+                    "energy-heat-mix",
+                    f"{m.heat:,.0f} MWh of purchased heat, steam or cooling has an undetermined "
+                    "source mix; obtain it from the supplier.",
+                )
+            )
+        if m.lines_without_energy:
+            checks.append(
+                Check(
+                    Level.WARNING,
+                    "energy-incomplete",
+                    f"{m.lines_without_energy} Scope 1/2 energy lines use factors without an "
+                    "energy content, so E1-5 totals are incomplete.",
+                )
+            )
+        checks.append(
+            Check(
+                Level.INFO,
+                "self-generated-renewables",
+                "Self-generated non-fuel renewable energy (E1-5 §37(c)(iii), e.g. on-site solar) "
+                "is not tracked; add it if applicable.",
+            )
+        )
     order = {Level.BLOCKER: 0, Level.WARNING: 1, Level.INFO: 2}
     return sorted(checks, key=lambda c: order[c.level])
 
 
-def _basis(period: Period, framework: Framework) -> list[str]:
+def _basis(period: Period, framework: Framework, period_grid: bool = False) -> list[str]:
     inv = period.inventory
     results: Sequence[EmissionResult] = inv.headline_results()
     total = sum(r.co2e_kg for r in results) or 1.0
@@ -311,6 +375,14 @@ def _basis(period: Period, framework: Framework) -> list[str]:
             f"Emissions-weighted data quality score: {dq:.1f} (1 = supplier-specific, "
             "5 = estimated)."
         )
+    if framework == Framework.ESRS:
+        paras.append(
+            "Energy consumption (E1-5) covers own operations (Scope 1 fuels, Scope 2 purchased "
+            "electricity and heat) using net calorific values derived from the emission factor "
+            "dataset. Purchased electricity is counted once per site; the renewable share counts "
+            "electricity backed by energy attribute certificates"
+            + (", plus the stated grid mix for the rest." if period_grid else ".")
+        )
     if framework == Framework.ISSB:
         paras.append(
             "IFRS S2 §29(a)(v): information about contractual instruments that inform the "
@@ -330,15 +402,23 @@ def build(
     revenue_currency: str | None = None,
     ets_share: float | None = None,
     calculation_errors: int = 0,
+    grid_mix: GridMix | None = None,
 ) -> Disclosure:
     fw = Framework(framework)
-    cur = _metrics(current.inventory, net_revenue)
-    pri = _metrics(prior.inventory, None) if prior else None
-    bas = _metrics(base.inventory, None) if base else None
+    cur = _metrics(current.inventory, net_revenue, grid_mix)
+    pri = _metrics(prior.inventory, None, grid_mix) if prior else None
+    bas = _metrics(base.inventory, None, grid_mix) if base else None
 
-    def row(key: str, label: str, ref: str, unit: str = "tCO2e", indent: int = 0) -> Row:
+    def row(
+        key: str,
+        label: str,
+        ref: str,
+        unit: str = "tCO2e",
+        indent: int = 0,
+        section: str = "E1-6",
+    ) -> Row:
         return Row(key, label, ref, unit, _value(cur, key), _value(pri, key), _value(bas, key),
-                   indent)  # fmt: skip
+                   indent, section=section)  # fmt: skip
 
     rows: list[Row] = []
     if fw == Framework.ESRS:
@@ -400,13 +480,127 @@ def build(
                 cur.get("intensity_market"),
             ),  # fmt: skip
         ]
+        rows += [
+            Row(
+                "biogenic",
+                "Biogenic CO2 emissions (outside the scopes)",
+                "E1-6 AR 43, 45, 46",
+                "tCO2",
+                sum(v or 0 for k, v in cur.items() if k.startswith("biogenic_")),
+                None
+                if pri is None
+                else sum(v or 0 for k, v in pri.items() if k.startswith("biogenic_")),
+                None
+                if bas is None
+                else sum(v or 0 for k, v in bas.items() if k.startswith("biogenic_")),
+            ),  # fmt: skip
+            row(
+                "biogenic_scope1",
+                "from Scope 1 sources (e.g. biofuel blends)",
+                "E1-6 AR 43",
+                "tCO2",
+                indent=1,
+            ),  # fmt: skip
+            row(
+                "biogenic_scope2",
+                "from purchased electricity (location-based)",
+                "E1-6 AR 45",
+                "tCO2",
+                indent=1,
+            ),  # fmt: skip
+            row("biogenic_scope3", "from Scope 3 sources", "E1-6 AR 46", "tCO2", indent=1),
+        ]
+        e = "E1-5"
+        rows += [
+            row(
+                "energy_fossil", "Total fossil energy consumption", "E1-5 §37(a)", "MWh", section=e
+            ),  # fmt: skip
+            row(
+                "energy_fossil_fuels",
+                "of which fossil fuels (own combustion)",
+                "E1-5 §37(a)",
+                "MWh",
+                indent=1,
+                section=e,
+            ),
+            row(
+                "energy_nuclear",
+                "Consumption from nuclear sources",
+                "E1-5 §37(b)",
+                "MWh",
+                section=e,
+            ),  # fmt: skip
+            row(
+                "energy_renewable",
+                "Total renewable energy consumption",
+                "E1-5 §37(c)",
+                "MWh",
+                section=e,
+            ),  # fmt: skip
+            row(
+                "energy_renewable_fuels",
+                "Fuel consumption from renewable sources, incl. biomass",
+                "E1-5 §37(c)(i)",
+                "MWh",
+                indent=1,
+                section=e,
+            ),  # fmt: skip
+            row(
+                "energy_renewable_purchased",
+                "Purchased electricity, heat, steam and cooling from renewable sources",
+                "E1-5 §37(c)(ii)",
+                "MWh",
+                indent=1,
+                section=e,
+            ),  # fmt: skip
+            row(
+                "energy_self_generated",
+                "Self-generated non-fuel renewable energy",
+                "E1-5 §37(c)(iii)",
+                "MWh",
+                indent=1,
+                section=e,
+            ),  # fmt: skip
+        ]
+        if (cur.get("energy_undetermined") or 0) > 0:
+            rows.append(
+                row(
+                    "energy_undetermined",
+                    "Purchased energy with undetermined source mix",
+                    "see readiness checks",
+                    "MWh",
+                    section=e,
+                )  # fmt: skip
+            )
+        revenue_unit = f"MWh per million {revenue_currency or 'currency units'} net revenue"
+        rows += [
+            row("energy_total", "Total energy consumption", "E1-5 §37, AR 34", "MWh", section=e),
+            row(
+                "energy_renewable_share",
+                "Share of renewable sources in total energy consumption",
+                "E1-5 AR 34",
+                "%",
+                section=e,
+            ),  # fmt: skip
+            Row(
+                "energy_intensity",
+                "Energy intensity per net revenue (high climate impact sectors)",
+                "E1-5 §40",
+                revenue_unit,
+                cur.get("energy_intensity"),
+                section=e,
+            ),  # fmt: skip
+        ]
     else:
         rows.append(
             row("total_location", "Total Scope 1, 2 (location-based) and 3", "IFRS S2 §29(a)(i)")
         )
 
+    if fw == Framework.ISSB:
+        for r in rows:
+            r.section = "S2"
     title = (
-        "ESRS E1-6 Gross Scopes 1, 2, 3 and Total GHG emissions"
+        "ESRS E1 Climate change: GHG emissions (E1-6) and energy (E1-5)"
         if fw == Framework.ESRS
         else "IFRS S2 §29(a) Greenhouse gas emissions"
     )
@@ -424,13 +618,21 @@ def build(
             net_revenue=net_revenue,
             ets_share=ets_share,
             prior=prior,
+            grid_mix=grid_mix,
         ),  # fmt: skip
-        basis=_basis(current, fw),
+        basis=_basis(current, fw, period_grid=grid_mix is not None),
         revenue_currency=revenue_currency,
     )
 
 
 # -- renderers ---------------------------------------------------------------------------------
+SECTION_TITLES = {
+    "E1-6": "E1-6 Gross Scopes 1, 2, 3 and total GHG emissions",
+    "E1-5": "E1-5 Energy consumption and mix",
+    "S2": "IFRS S2 §29(a) Greenhouse gas emissions",
+}
+
+
 def _num(v: float | None, unit: str = "") -> str:
     return "" if v is None else f"{v:,.1f}"
 
@@ -442,12 +644,15 @@ def _pct(v: float | None) -> str:
 def to_csv(d: Disclosure) -> str:
     buf = io.StringIO()
     w = csv.writer(buf, lineterminator="\n")
-    w.writerow(["key", "metric", "reference", "unit", f"base year {d.base_year or ''}".strip(),
-                f"N-1 {d.prior_year or ''}".strip(), f"N {d.reporting_year or ''}".strip(),
-                "% N / N-1", "% N / base year"])  # fmt: skip
+    w.writerow(
+        ["section", "key", "metric", "reference", "unit", f"base year {d.base_year or ''}".strip(),
+         f"N-1 {d.prior_year or ''}".strip(), f"N {d.reporting_year or ''}".strip(),
+         "% N / N-1", "% N / base year"]
+    )  # fmt: skip
     for r in d.rows:
         w.writerow(
             [
+                r.section,
                 r.key,
                 r.label,
                 r.reference,
@@ -464,13 +669,18 @@ def to_csv(d: Disclosure) -> str:
 
 def to_markdown(d: Disclosure) -> str:
     n, p, b = d.reporting_year or "N", d.prior_year or "N-1", d.base_year or "Base year"
-    lines = [
-        f"# {d.title}",
-        "",
-        f"| Metric | Reference | Unit | {b} | {p} | {n} | % N / N-1 | % N / base |",
-        "|---|---|---|--:|--:|--:|--:|--:|",
-    ]
+    lines = [f"# {d.title}"]
+    section = None
     for r in d.rows:
+        if r.section != section:
+            section = r.section
+            lines += [
+                "",
+                f"## {SECTION_TITLES.get(section, section)}",
+                "",
+                f"| Metric | Reference | Unit | {b} | {p} | {n} | % N / N-1 | % N / base |",
+                "|---|---|---|--:|--:|--:|--:|--:|",
+            ]
         label = ("&nbsp;&nbsp;&nbsp;&nbsp;" * r.indent) + r.label
         lines.append(
             f"| {label} | {r.reference} | {r.unit} | {_num(r.base, r.unit)} | "

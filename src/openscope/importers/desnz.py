@@ -32,7 +32,14 @@ from typing import Any
 
 from openscope.errors import FactorError
 from openscope.gwp import GWPSet, gwp
-from openscope.models import EmissionFactor, FactorStatus, Scope, Scope2Method, Scope3Category
+from openscope.models import (
+    EmissionFactor,
+    EnergySource,
+    FactorStatus,
+    Scope,
+    Scope2Method,
+    Scope3Category,
+)
 
 SOURCE_URL = (
     "https://www.gov.uk/government/collections/government-conversion-factors-for-company-reporting"
@@ -99,6 +106,8 @@ class ImportReport:
     skipped_unknown_unit: dict[str, int] = field(default_factory=dict)
     per_gas: int = 0
     total_only: int = 0
+    energy_linked: int = 0
+    biogenic_linked: int = 0
 
 
 def _gwp_basis(level1: str) -> str:
@@ -149,15 +158,94 @@ def parse_rows(rows: Iterable[Sequence[Any]], year: int) -> ImportReport:
         elif m := _GAS_RE.fullmatch(ghg_unit):
             g.gases_co2e[m.group(1).upper()] = float(value)
 
+    extras = _energy_and_biogenic(groups)
     unknown: dict[str, int] = defaultdict(int)
     for prefix, g in groups.items():
         factor = _to_factor(prefix, g, year, report)
         if factor is None:
             unknown[g.meta[6]] += 1
-        else:
-            report.factors.append(factor)
+            continue
+        if prefix in extras:
+            update = {k: v for k, v in extras[prefix].items() if v is not None}
+            factor = factor.model_copy(update=update)
+            report.energy_linked += "energy_kwh_per_unit" in update
+            report.biogenic_linked += "biogenic_co2_kg" in update
+        report.factors.append(factor)
     report.skipped_unknown_unit = dict(unknown)
     return report
+
+
+KWH_PER_GJ = 1e3 / 3.6
+
+_ENERGY_SOURCE = {
+    ("scope 1", "fuels"): EnergySource.FOSSIL_FUEL,
+    ("scope 1", "bioenergy"): EnergySource.RENEWABLE_FUEL,
+    ("scope 2", "uk electricity"): EnergySource.ELECTRICITY,
+    ("scope 2", "heat and steam"): EnergySource.HEAT,
+    ("scope 1", "refrigerant & other"): EnergySource.NON_ENERGY,
+}
+
+
+def _total(g: _Group) -> float:
+    return g.total if g.total is not None else sum(g.gases_co2e.values())
+
+
+def _energy_and_biogenic(groups: dict[str, _Group]) -> dict[str, dict[str, Any]]:
+    """Energy content, energy source and biogenic CO2 for in-scope factors.
+
+    * Energy per unit (kWh, net CV) for fuels comes from DESNZ's own numbers: the same fuel is
+      published per unit and per kWh (Net CV), so ``factor(unit) / factor(kWh Net CV)`` is the
+      net calorific value of one unit. Biofuels are published per GJ instead of per kWh; the
+      GJ factor is used as the reference, as published. Electricity and heat in kWh are 1 kWh
+      per kWh.
+    * Biogenic CO2 comes from the "Outside of Scopes" rows, linked to the in-scope factor with
+      the same fuel (Level 3) and unit, only when that match is unambiguous.
+    """
+    out: dict[str, dict[str, Any]] = defaultdict(dict)
+    # kg CO2e per kWh of energy for each fuel: from the kWh (Net CV) factor, or else the GJ factor
+    net_cv: dict[tuple[str, ...], float] = {}
+    per_gj: dict[tuple[str, ...], float] = {}
+    for g in groups.values():
+        scope, l1, l2, l3, l4, col, uom = (x.lower() for x in g.meta)
+        if uom == "kwh (net cv)" and _total(g) > 0:
+            net_cv[(scope, l1, l2, l3, l4, col)] = _total(g)
+        elif uom == "gj" and _total(g) > 0:
+            per_gj[(scope, l1, l2, l3, l4, col)] = _total(g) / KWH_PER_GJ
+    for key, v in per_gj.items():
+        net_cv.setdefault(key, v)
+
+    in_scope: dict[tuple[str, str], list[str]] = defaultdict(list)
+    for prefix, g in groups.items():
+        scope, l1, l2, l3, l4, col, uom = (x.lower() for x in g.meta)
+        source = _ENERGY_SOURCE.get((scope, l1))
+        if source is None:
+            continue
+        out[prefix]["energy_source"] = source
+        in_scope[(l3, uom)].append(prefix)
+        if (
+            uom in ("kwh", "kwh (net cv)")
+            and source
+            in (
+                EnergySource.ELECTRICITY,
+                EnergySource.HEAT,
+            )
+            or uom == "kwh (net cv)"
+        ):
+            out[prefix]["energy_kwh_per_unit"] = 1.0
+        elif (ref := net_cv.get((scope, l1, l2, l3, l4, col))) and _total(g) > 0:
+            out[prefix]["energy_kwh_per_unit"] = _total(g) / ref
+
+    for g in groups.values():
+        scope, l1, l2, l3, l4, col, uom = (x.lower() for x in g.meta)
+        co2 = g.gases_co2e.get("CO2")
+        if scope != "outside of scopes" or not co2:
+            continue
+        candidates = in_scope.get((l3, uom), [])
+        if l4:
+            candidates = [c for c in candidates if groups[c].meta[4].lower() == l4] or candidates
+        if len(candidates) == 1:
+            out[candidates[0]]["biogenic_co2_kg"] = co2  # kg CO2e of CO2 = kg CO2
+    return dict(out)
 
 
 def _to_factor(prefix: str, g: _Group, year: int, report: ImportReport) -> EmissionFactor | None:

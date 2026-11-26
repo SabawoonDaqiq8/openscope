@@ -17,8 +17,9 @@ emission factor, unit conversion and GWP.
 > Status: **alpha (v0.6)**: core engine, official factor datasets (**UK DESNZ 2025**, 2,672
 > factors, and **US EPA supply chain factors v1.3**, 1,016 spend-based factors), an
 > **AI-assisted Scope 3 spend classifier** with human review and an audit trail, a
-> **decarbonisation pathway simulator** (MACC, science-based targets, Monte Carlo), **ESRS E1-6 /
-> IFRS S2 disclosure tables** with readiness checks, and a **web dashboard** (FastAPI + Angular).
+> **decarbonisation pathway simulator** (MACC, science-based targets, Monte Carlo), **ESRS E1-5 /
+> E1-6 and IFRS S2 disclosure tables** (energy mix, biogenic CO2) with readiness checks, and a
+> **web dashboard** (FastAPI + Angular).
 
 ![openscope dashboard](docs/images/dashboard-overview-light.png)
 
@@ -78,17 +79,23 @@ Turns inventories into the GHG emissions table each framework asks for:
 * **ESRS E1-6**: gross Scope 1 and the share under regulated ETS (§48), Scope 2 location- and
   market-based (§49), total and significant Scope 3 categories (§51), totals (§52), GHG
   intensity per net revenue (§53), with prior-year and base-year comparison.
+* **ESRS E1-5 energy consumption and mix**: fossil, nuclear and renewable energy (MWh), the
+  renewable share and energy intensity. Net calorific values are derived from the DESNZ
+  dataset itself, and certificate-backed renewable electricity is counted once per site.
+* **Biogenic CO2** reported outside the scopes, from DESNZ's outside-of-scopes factors.
 * **IFRS S2 §29(a)**: absolute gross Scope 1, 2 (location-based, plus market-based for
   contractual instruments) and 3 with categories.
 * **Readiness checks**: what an assurance provider would raise (illustrative factors and
-  calculation errors block; non-AR6 GWPs, Scope 2 grid-average fallback and missing revenue
-  warn; unreported Scope 3 categories and biogenic CO2 are noted).
+  calculation errors block; non-AR6 GWPs, Scope 2 grid-average fallback, missing revenue,
+  electricity or heat with an undetermined source mix and lines without energy content warn;
+  unreported Scope 3 categories, biogenic CO2 and self-generated renewables are noted).
 * A **basis of preparation** generated from the calculation metadata, and CSV, Markdown and
   JSON export.
 
 ```bash
 openscope disclose examples/uk_demo_activities.csv --prior examples/uk_demo_activities_2024.csv \
-    --dataset desnz-2025 --year 2025 --net-revenue 12500000 --currency GBP --ets-share 0
+    --dataset desnz-2025 --year 2025 --net-revenue 12500000 --currency GBP --ets-share 0 \
+    --grid-mix 40,15,45   # fossil,nuclear,renewable % of electricity not covered by certificates
 ```
 
 References are to ESRS Set 1 (Delegated Regulation (EU) 2023/2772) and IFRS S2. The EU Omnibus

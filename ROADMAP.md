@@ -49,6 +49,10 @@
 ## Later datasets
 - US EPA GHG Emission Factors Hub (full), residual-mix factors (AIB, Green-e)
 
+## v0.8 — Energy and biogenic CO2 ✅
+- ESRS E1-5 energy consumption and mix; biogenic CO2 outside the scopes
+
 ## Later
-- ESRS XBRL tagging; E1-5 energy consumption and mix; E1-4 targets from pathway scenarios
+- ESRS XBRL tagging; E1-4 targets from pathway scenarios; EU grid and residual-mix factors;
+  energy content for vehicle-distance factors
 - PCAF financed-emissions module
