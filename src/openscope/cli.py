@@ -138,6 +138,32 @@ def cmd_import_desnz(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_import_aib(args: argparse.Namespace) -> int:
+    from openscope.importers import aib
+
+    report = aib.read_workbook(args.workbook, args.year)
+    reg = FactorRegistry(report.factors)
+    reg.to_csv(
+        args.out,
+        header_comment=(
+            f"Imported from {Path(args.workbook).name} by openscope {__version__}.\n"
+            f"Source: Association of Issuing Bodies (AIB), European Residual Mixes, "
+            f"{aib.SOURCE_URL}. Copyright AIB; cite the AIB wherever you use these values.\n"
+            "g CO2/kWh converted to kg; direct CO2 from combustion only."
+        ),
+    )
+    print(f"Wrote {len(reg)} factors to {args.out}")
+    print(f"  residual mix (market-based):    {report.residual}")
+    print(f"  production mix (location-based): {report.production}")
+    print(f"  with generation mix (E1-5):     {report.with_mix}")
+    if report.no_residual_mix:
+        print(f"  no residual mix published:      {', '.join(report.no_residual_mix)}")
+        print("    (use the supplier's disclosed mix for electricity bought there)")
+    for problem in report.mix_not_reconciled:
+        print(f"  generation mix left out:        {problem}")
+    return 0
+
+
 def _spend_factors(reg: FactorRegistry) -> list[EmissionFactor]:
     from openscope import units
 
@@ -387,6 +413,12 @@ def build_parser() -> argparse.ArgumentParser:
     ds.add_argument("--format", default="md", choices=["md", "csv", "json"])
     ds.add_argument("--out", help="Write to a file instead of stdout")
     ds.set_defaults(func=cmd_disclose)
+
+    a = sub.add_parser("import-aib", help="Convert AIB European Residual Mixes to factor CSV")
+    a.add_argument("workbook", help="AIB residual mix results workbook (.xlsx)")
+    a.add_argument("--year", type=int, help="Year of the data (default: from the file name)")
+    a.add_argument("--out", required=True)
+    a.set_defaults(func=cmd_import_aib)
 
     u = sub.add_parser("import-useeio", help="Convert EPA supply chain factors to factor CSV")
     u.add_argument("by_ghg", help="SupplyChainGHGEmissionFactors_*_NAICS_byGHG_*.csv")

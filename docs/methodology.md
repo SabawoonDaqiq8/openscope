@@ -57,6 +57,26 @@ and use the published total. EPA's "HFCs and PFCs, unspecified" group is publish
 and is kept as a fixed `CO2E` component. Methane is not split into fossil and biogenic, so it is
 treated as fossil under AR6, which is conservative.
 
+### EU electricity: AIB European Residual Mixes
+
+`openscope import-aib` reads the AIB results workbook (sheets `CO2`, `Residual Mixes` and
+`Production Mix`). Per country it creates:
+
+* `AIB-<year>-RM-<country>`: the **residual mix**, Scope 2 market-based. Under the GHG
+  Protocol Scope 2 Guidance this is the factor for electricity bought without a contractual
+  instrument. The AIB publishes none for some countries (AT, CH and NL in 2025); there, use the
+  supplier's disclosed mix.
+* `AIB-<year>-PM-<country>`: the **production mix**, Scope 2 location-based. It is the
+  generation inside the country before imports and exports, which is close to, but not the
+  same as, a consumption-based grid average.
+
+The CO2 values (g/kWh, from the `CO2` sheet) are **direct CO2 from combustion only**. They
+exclude CH4 and N2O, upstream (life-cycle) emissions and transmission and distribution losses,
+so they are lower than DESNZ-style factors that include those. Each factor keeps the `RE
+Total`, `Nuclear` and `FO Total` shares as `renewable_share`, `nuclear_share` and
+`fossil_share`. Shares that do not sum to 1 within 1% are left out rather than guessed. The
+AIB data is copyright of the AIB; openscope does not redistribute it.
+
 ### GWP values
 
 AR5 values are IPCC AR5 WG1 Table 8.A.1 (no climate-carbon feedbacks); AR6 values are IPCC AR6
@@ -140,7 +160,7 @@ no cost uncertainty yet.
 Readiness levels: **blocker** (illustrative factors, calculation errors), **warning** (non-AR6
 GWPs, Scope 2 market-based fallback, missing net revenue), **info** (unreported Scope 3
 categories, missing comparatives or ETS share, biogenic CO2 not calculated, a high spend-based
-share). Not covered: E1-4 targets, E1-5 energy, E1-7 removals and credits, consolidation scope
+share). Not covered: E1-4 targets, E1-7 removals and credits, consolidation scope
 (§50), and XBRL tagging.
 
 ## Energy consumption and mix (ESRS E1-5)
@@ -160,9 +180,18 @@ electricity and heat. Scope 3 is excluded.
   backed by energy attribute certificates on the market-based rows, capped at the site's
   consumption.
 * **Source mix**: E1-5 §37 splits consumption into fossil (a), nuclear (b) and renewable (c).
-  The rest of the purchased electricity is split only when a supplier or grid mix is given;
-  otherwise it is reported as *undetermined*, fossil and nuclear totals are left blank, and a
-  readiness warning is raised. The fossil fuels burnt on site are always shown.
+  Electricity not covered by certificates is split per site using, in order:
+  1. the generation mix published with the **market-based** factor, i.e. a national residual
+     mix (the AIB residual mixes carry one). This is the mix of electricity bought without
+     guarantees of origin, so it matches the market-based Scope 2 figure;
+  2. a supplier or grid mix **stated** by the user (`--grid-mix`, or the dashboard inputs);
+  3. the generation mix published with the **location-based** factor, i.e. the national
+     production mix.
+
+  Where a factor covers only part of a site's electricity, the next basis covers the rest.
+  Anything left is reported as *undetermined* with a readiness warning; when no mix is known at
+  all, the fossil and nuclear totals are left blank. The basis used, in MWh, is noted in the
+  readiness checks. The fossil fuels burnt on site are always shown.
 * Not covered yet: self-generated non-fuel renewables (E1-5 §37(c)(iii)), the fossil-fuel
   breakdown for high climate impact sectors (§38), the energy content of vehicle-distance
   factors (km), and the source mix of purchased heat.

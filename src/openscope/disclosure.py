@@ -296,14 +296,25 @@ def _checks(
     )
     if framework == Framework.ESRS:
         m = energy_mix(inv, grid_mix)
-        if m.electricity_other and grid_mix is None:
+        if m.electricity_undetermined > 0.0005:
             checks.append(
                 Check(
                     Level.WARNING,
                     "energy-mix",
-                    f"{m.electricity_other:,.0f} MWh of purchased electricity is not covered by "
-                    "renewable certificates and has no fossil / nuclear / renewable split, which "
-                    "E1-5 §37 requires. Enter the supplier or grid mix shares.",
+                    f"{m.electricity_undetermined:,.0f} MWh of purchased electricity is not "
+                    "covered by renewable certificates and has no fossil / nuclear / renewable "
+                    "split, which E1-5 §37 requires. Use electricity factors that publish their "
+                    "generation mix (e.g. AIB residual mixes) or enter the supplier or grid mix.",
+                )
+            )
+        if m.mix_basis:
+            used = "; ".join(f"{b}: {v:,.0f} MWh" for b, v in m.mix_basis.items())
+            checks.append(
+                Check(
+                    Level.INFO,
+                    "energy-mix-basis",
+                    f"Purchased electricity without certificates is split into fossil, nuclear "
+                    f"and renewable using {used}.",
                 )
             )
         if m.heat:
@@ -380,8 +391,12 @@ def _basis(period: Period, framework: Framework, period_grid: bool = False) -> l
             "Energy consumption (E1-5) covers own operations (Scope 1 fuels, Scope 2 purchased "
             "electricity and heat) using net calorific values derived from the emission factor "
             "dataset. Purchased electricity is counted once per site; the renewable share counts "
-            "electricity backed by energy attribute certificates"
-            + (", plus the stated grid mix for the rest." if period_grid else ".")
+            "electricity backed by energy attribute certificates. Other purchased electricity is "
+            "split using the generation mix published with the market-based factor (a residual "
+            "mix)"
+            + (", then the stated supplier or grid mix" if period_grid else "")
+            + ", then the mix published with the location-based factor (a production mix); "
+            "any remainder is reported as undetermined."
         )
     if framework == Framework.ISSB:
         paras.append(

@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.9.0
+### Added
+- **EU electricity factors from the AIB European Residual Mixes**: `openscope import-aib`
+  converts the AIB workbook into per-country Scope 2 factors, the residual mix
+  (market-based, `AIB-<year>-RM-<country>`) and the production mix (location-based,
+  `AIB-<year>-PM-<country>`). The 2025 workbook gives 65 factors for 34 countries. The AIB
+  data is not bundled: it is copyright of the AIB.
+- Factors can carry their generation mix (`fossil_share`, `nuclear_share`,
+  `renewable_share`), shown in the calculation trace
+- ESRS E1-5 splits electricity without certificates automatically: the market-based factor's
+  mix first, then a stated mix, then the location-based factor's mix. The readiness checks say
+  which basis covered how many MWh.
+
+### Changed
+- The `energy-mix` warning is raised only for electricity no mix covers
+
 ## 0.8.0
 ### Added
 - **ESRS E1-5 energy consumption and mix**: fossil (§37(a)), nuclear (§37(b)) and renewable

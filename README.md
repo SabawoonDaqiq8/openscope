@@ -81,7 +81,9 @@ Turns inventories into the GHG emissions table each framework asks for:
   intensity per net revenue (§53), with prior-year and base-year comparison.
 * **ESRS E1-5 energy consumption and mix**: fossil, nuclear and renewable energy (MWh), the
   renewable share and energy intensity. Net calorific values are derived from the DESNZ
-  dataset itself, and certificate-backed renewable electricity is counted once per site.
+  dataset itself, and certificate-backed renewable electricity is counted once per site. The
+  rest of the electricity is split using the generation mix published with the factor (AIB
+  residual mixes) or a mix you enter.
 * **Biogenic CO2** reported outside the scopes, from DESNZ's outside-of-scopes factors.
 * **IFRS S2 §29(a)**: absolute gross Scope 1, 2 (location-based, plus market-based for
   contractual instruments) and 3 with categories.
@@ -95,7 +97,7 @@ Turns inventories into the GHG emissions table each framework asks for:
 ```bash
 openscope disclose examples/uk_demo_activities.csv --prior examples/uk_demo_activities_2024.csv \
     --dataset desnz-2025 --year 2025 --net-revenue 12500000 --currency GBP --ets-share 0 \
-    --grid-mix 40,15,45   # fossil,nuclear,renewable % of electricity not covered by certificates
+    --grid-mix 40,15,45   # fossil,nuclear,renewable % where the factors publish no mix
 ```
 
 References are to ESRS Set 1 (Delegated Regulation (EU) 2023/2772) and IFRS S2. The EU Omnibus
@@ -227,7 +229,18 @@ openscope factors --dataset desnz-2025 --search "Hotel stay"
 openscope import-desnz ghg-conversion-factors-2026-flat-format.xlsx --out desnz_2026.csv
 openscope import-useeio SupplyChainGHGEmissionFactors_v1.3.0_NAICS_byGHG_USD2022.csv \
     --co2e SupplyChainGHGEmissionFactors_v1.3.0_NAICS_CO2e_USD2022.csv --out useeio.csv
+openscope import-aib "2025_Final _Residual mix calculation results.xlsx" --out aib_2025.csv
 ```
+
+**EU electricity (AIB residual and production mixes).** `import-aib` converts the
+[AIB European Residual Mixes](https://www.aib-net.org/facts/european-residual-mix) workbook
+into per-country Scope 2 factors (34 countries in 2025): the **residual mix** as the
+market-based factor for electricity bought without guarantees of origin (`AIB-2025-RM-DE`),
+and the **production mix** as the location-based factor (`AIB-2025-PM-DE`). Each factor keeps
+its fossil / nuclear / renewable generation mix, so the ESRS E1-5 energy mix fills itself in.
+The values are direct CO2 from combustion only (no CH4/N2O, upstream or grid losses). The AIB
+data is copyright of the AIB and is not bundled: download the workbook yourself, cite the AIB,
+and load the CSV with `--factors aib_2025.csv` (or `OPENSCOPE_FACTOR_FILES` for the server).
 
 **Spend-based factors (US EPA, USEEIO).** `useeio-1.3` holds kg of each gas per 2022 USD
 (purchaser price including margins) for 1,016 NAICS-6 commodities. The importer checks every

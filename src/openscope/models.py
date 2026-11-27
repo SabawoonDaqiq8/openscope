@@ -128,6 +128,11 @@ class EmissionFactor(BaseModel):
     energy_source: EnergySource | None = None
     # biogenic CO2 per activity unit (kg), reported outside the scopes
     biogenic_co2_kg: float | None = Field(default=None, ge=0)
+    # for electricity factors: the generation mix behind the factor (shares summing to 1), e.g.
+    # a national residual mix. Used to split purchased electricity in ESRS E1-5.
+    fossil_share: float | None = Field(default=None, ge=0, le=1)
+    nuclear_share: float | None = Field(default=None, ge=0, le=1)
+    renewable_share: float | None = Field(default=None, ge=0, le=1)
 
     @model_validator(mode="after")
     def _has_values(self) -> EmissionFactor:
@@ -135,7 +140,22 @@ class EmissionFactor(BaseModel):
             raise ValueError(f"Factor {self.factor_id} needs per-gas values or co2e_kg")
         if any(v < 0 for v in self.gases.values()) or (self.co2e_kg or 0) < 0:
             raise ValueError(f"Factor {self.factor_id} has negative values")
+        shares = (self.fossil_share, self.nuclear_share, self.renewable_share)
+        if any(v is not None for v in shares):
+            if any(v is None for v in shares):
+                raise ValueError(
+                    f"Factor {self.factor_id}: give all of fossil, nuclear and renewable shares"
+                )
+            if abs(sum(v for v in shares if v is not None) - 1) > 0.005:
+                raise ValueError(f"Factor {self.factor_id}: generation mix shares must sum to 1")
         return self
+
+    @property
+    def supply_mix(self) -> tuple[float, float, float] | None:
+        """(fossil, nuclear, renewable) shares of the generation behind the factor, if known."""
+        if self.fossil_share is None or self.nuclear_share is None or self.renewable_share is None:
+            return None
+        return (self.fossil_share, self.nuclear_share, self.renewable_share)
 
 
 class ActivityRecord(BaseModel):
@@ -200,6 +220,8 @@ class EmissionResult(BaseModel):
     energy_kwh: float | None = None
     energy_source: EnergySource | None = None
     biogenic_co2_kg: float | None = None
+    # (fossil, nuclear, renewable) generation mix of the electricity factor, if published
+    supply_mix: tuple[float, float, float] | None = None
 
     @property
     def co2e_t(self) -> float:

@@ -135,6 +135,11 @@ class Calculator:
                 f"Energy: {_fmt(qty)} × {_fmt(factor.energy_kwh_per_unit)} kWh/"
                 f"{factor.activity_unit} = {_fmt(energy_kwh)} kWh ({src})"
             )
+        if (mix := factor.supply_mix) is not None:
+            trace.append(
+                f"Generation mix behind the factor: fossil {mix[0]:.1%}, nuclear {mix[1]:.1%}, "
+                f"renewable {mix[2]:.1%}"
+            )
         if factor.biogenic_co2_kg:
             biogenic = qty * factor.biogenic_co2_kg
             trace.append(
@@ -167,6 +172,7 @@ class Calculator:
             energy_kwh=energy_kwh,
             energy_source=factor.energy_source,
             biogenic_co2_kg=biogenic,
+            supply_mix=factor.supply_mix,
         )
 
     def calculate_many(self, activities: Iterable[ActivityRecord]) -> BatchResult:

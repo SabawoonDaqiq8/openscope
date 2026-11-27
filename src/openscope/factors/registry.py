@@ -8,6 +8,8 @@ CSV columns
 factor_id, name, activity_unit, co2_kg, ch4_kg, n2o_kg, other_gases, co2e_kg, gwp_basis,
 scope, scope3_category, scope2_method, region, year, source, source_url, status, notes,
 energy_kwh_per_unit, energy_source, biogenic_co2_kg   (optional; for ESRS E1-5 and biogenic CO2)
+fossil_share, nuclear_share, renewable_share         (optional; generation mix of an electricity
+                                                      factor, as fractions summing to 1)
 
 ``other_gases`` is a ``;``-separated list of ``GAS=kg`` pairs, e.g. ``HFC-134A=1``.
 Empty cells are treated as missing.
@@ -60,6 +62,9 @@ CSV_COLUMNS = [
     "energy_kwh_per_unit",
     "energy_source",
     "biogenic_co2_kg",
+    "fossil_share",
+    "nuclear_share",
+    "renewable_share",
 ]
 
 
@@ -91,12 +96,20 @@ def _to_row(f: EmissionFactor) -> dict[str, str]:
         "energy_kwh_per_unit": _num(f.energy_kwh_per_unit),
         "energy_source": f.energy_source.value if f.energy_source else "",
         "biogenic_co2_kg": _num(f.biogenic_co2_kg),
+        "fossil_share": _num(f.fossil_share),
+        "nuclear_share": _num(f.nuclear_share),
+        "renewable_share": _num(f.renewable_share),
     }
 
 
 def _opt(row: dict[str, str], key: str) -> str | None:
     value = (row.get(key) or "").strip()
     return value or None
+
+
+def _share(row: dict[str, str], key: str) -> float | None:
+    value = _opt(row, key)
+    return None if value is None else float(value)
 
 
 def _parse_row(row: dict[str, str], line: int, origin: str) -> EmissionFactor:
@@ -134,6 +147,9 @@ def _parse_row(row: dict[str, str], line: int, origin: str) -> EmissionFactor:
             energy_kwh_per_unit=float(e) if (e := _opt(row, "energy_kwh_per_unit")) else None,
             energy_source=EnergySource(src) if (src := _opt(row, "energy_source")) else None,
             biogenic_co2_kg=float(b) if (b := _opt(row, "biogenic_co2_kg")) else None,
+            fossil_share=_share(row, "fossil_share"),
+            nuclear_share=_share(row, "nuclear_share"),
+            renewable_share=_share(row, "renewable_share"),
         )
     except (KeyError, ValueError) as exc:
         raise FactorError(f"{origin}:{line}: invalid factor row: {exc}") from exc

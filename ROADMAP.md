@@ -47,12 +47,16 @@
 - ESRS E1-6 / IFRS S2 §29(a) tables, comparatives, intensity, readiness checks, exports
 
 ## Later datasets
-- US EPA GHG Emission Factors Hub (full), residual-mix factors (AIB, Green-e)
+- US EPA GHG Emission Factors Hub (full), US residual mix (Green-e), EEA consumption-based
+  grid factors for the EU
 
 ## v0.8 — Energy and biogenic CO2 ✅
 - ESRS E1-5 energy consumption and mix; biogenic CO2 outside the scopes
 
+## v0.9 — EU electricity ✅
+- AIB residual-mix (market-based) and production-mix (location-based) factors per country;
+  the factors' generation mix fills the E1-5 energy mix
+
 ## Later
-- ESRS XBRL tagging; E1-4 targets from pathway scenarios; EU grid and residual-mix factors;
-  energy content for vehicle-distance factors
+- ESRS XBRL tagging; E1-4 targets from pathway scenarios; energy content for vehicle-distance factors
 - PCAF financed-emissions module

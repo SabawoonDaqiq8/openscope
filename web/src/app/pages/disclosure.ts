@@ -126,7 +126,8 @@ const n1 = new Intl.NumberFormat('en-GB', { minimumFractionDigits: 1, maximumFra
           </label>
           <fieldset class="sm:col-span-2 lg:col-span-6">
             <legend class="text-sm">
-              Mix of purchased electricity not covered by renewable certificates (%, for E1-5)
+              Supplier or grid mix of electricity not covered by certificates (%, for E1-5; factors
+              that publish a residual mix take precedence)
             </legend>
             <div class="mt-1 grid grid-cols-3 gap-2 max-w-md">
               @for (g of gridFields; track g.key) {
