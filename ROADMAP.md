@@ -63,6 +63,9 @@
 ## v0.11 — ESRS E1-4 targets ✅
 - GHG emission reduction targets and lever contributions from pathway scenarios
 
+## v0.12 — Factor editions ✅
+- DESNZ 2024, 2025 and 2026, matched to each activity's year
+
 ## Later
 - ESRS XBRL tagging; intensity targets and progress tracking for E1-4; energy content for vehicle-distance factors
 - PCAF financed-emissions module

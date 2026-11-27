@@ -135,9 +135,9 @@ test('disclosure: ESRS table with comparatives, download and IFRS S2 toggle', as
     .getByLabel('Prior year (N-1)')
     .selectOption({ label: 'Demo: UK company 2024 (DESNZ factors)' });
   const s2m = page.locator('tr', { hasText: 'Gross market-based Scope 2 GHG emissions' });
-  await expect(s2m).toContainText('159.3');
+  await expect(s2m).toContainText('186.3');
   await expect(s2m).toContainText('44.3');
-  await expect(s2m).toContainText('-72.2%');
+  await expect(s2m).toContainText('-76.3%');
   await expect(page.getByText('No blockers')).toBeVisible();
 
   const [download] = await Promise.all([

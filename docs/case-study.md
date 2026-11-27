@@ -46,22 +46,28 @@ the cost of one more line in the queue.
 ## 2. Calculating the inventory
 
 ```bash
-openscope calculate examples/uk_demo_activities.csv --dataset desnz-2025 --gwp AR5 \
+openscope calculate examples/uk_demo_activities.csv --dataset desnz --gwp AR5 \
     --year 2025 --derive-cat3
 ```
 
 | | 2024 | 2025 | Change |
 | --- | --: | --: | --: |
-| Scope 1 | 296.1 | 271.2 | −8.4 % |
-| Scope 2, location-based | 159.3 | 150.5 | −5.6 % |
-| Scope 2, market-based | 159.3 | 44.3 | −72.2 % |
-| Scope 3 | 339.8 | 334.6 | −1.5 % |
-| **Total, market-based** | **795.2** | **650.0** | **−18.3 %** |
+| Scope 1 | 293.5 | 271.2 | −7.6 % |
+| Scope 2, location-based | 186.3 | 150.5 | −19.3 % |
+| Scope 2, market-based | 186.3 | 44.3 | −76.3 % |
+| Scope 3 | 424.4 | 334.6 | −21.2 % |
+| **Total, market-based** | **904.2** | **650.0** | **−28.1 %** |
 
-tCO2e, UK Government (DESNZ) 2025 conversion factors, IPCC AR5 GWPs.
+tCO2e, UK Government (DESNZ) conversion factors for each year (2024 and 2025 editions), IPCC
+AR5 GWPs.
 
 Decisions behind these numbers:
 
+* **Each year uses its own factor edition.** The activity files name factors without a year,
+  and each line gets the DESNZ edition for its own year. Much of the 21 % fall in Scope 3 is
+  not the company's doing: DESNZ's 2025 edition replaced its aviation data, cutting long-haul
+  flight factors by over 40 %. The disclosure flags the edition change, so the report can
+  explain it rather than claim it.
 * **Every number is traceable.** Each line keeps the factor, unit conversion, GWP and
   arithmetic that produced it, the way an auditor would rebuild it:
   `CO2: 850,000 × 0.18259 kg/kWh = 155,201 kg × GWP 1`.
@@ -69,9 +75,10 @@ Decisions behind these numbers:
   with AR5 GWPs. The importer converts them back to kilograms of each gas, so the same
   inventory can be recalculated under AR6. ESRS asks for AR6; the demo uses AR5 to match the
   published factors, and the disclosure flags it.
-* **Scope 2 is reported both ways.** The renewable tariff cuts market-based Scope 2 by 72 %
-  while location-based falls 6 %. Showing both stops a contractual instrument from looking
-  like a physical reduction. The warehouse has no supplier-specific factor, so its
+* **Scope 2 is reported both ways.** The renewable tariff cuts market-based Scope 2 by 76 %;
+  location-based falls 19 %, mostly because the UK grid got cleaner (the DESNZ grid factor
+  fell 15 %) while consumption fell 6 %. Showing both stops a contractual instrument from
+  looking like a physical reduction. The warehouse has no supplier-specific factor, so its
   market-based figure falls back to the grid average, and the disclosure says so.
 * **Category 3 is derived, not typed in.** Fuel- and energy-related emissions (well-to-tank,
   grid losses) follow directly from Scope 1 and 2 quantities, so openscope derives them:
@@ -121,7 +128,7 @@ disclosed until they are replaced.
 
 ```bash
 openscope disclose examples/uk_demo_activities.csv --prior examples/uk_demo_activities_2024.csv \
-    --dataset desnz-2025 --derive-cat3 --year 2025 --net-revenue 12500000 --currency GBP \
+    --dataset desnz --derive-cat3 --year 2025 --net-revenue 12500000 --currency GBP \
     --ets-share 0
 ```
 
@@ -162,8 +169,8 @@ Some decisions were about what *not* to do:
   distributing the underlying factors in a derivative tool. openscope ships an importer
   instead: users download the workbook and cite the AIB.
 * **No guessed numbers.** An energy mix that isn't published stays undetermined; a
-  generation mix whose shares are more than 1 % off a total of 100 % is dropped, not rescaled; an SBTi comparison is
-  labelled as an indication, not a validation.
+  generation mix whose shares are more than 1 % off a total of 100 % is dropped, not
+  rescaled; an SBTi comparison is labelled as an indication, not a validation.
 * **Spend data is never silently converted.** A spend line in a different currency or price
   year from its factor needs exchange rates and a price index, or it fails or warns.
 
@@ -172,7 +179,8 @@ Some decisions were about what *not* to do:
 * **Backend**: Python, pydantic, FastAPI, SQLAlchemy; a CLI for every workflow.
 * **Frontend**: Angular (standalone components, signals, zoneless), Tailwind, ECharts. API
   types are generated from the OpenAPI spec, and CI fails if they drift.
-* **Data**: 2,672 DESNZ 2025 factors and 1,016 US EPA USEEIO spend factors, imported by
+* **Data**: three DESNZ editions (2024–2026, about 2,670 factors each) and 1,016 US EPA USEEIO
+  spend factors, imported by
   tested importers that reconcile per-gas values against published totals.
 * **Tests**: 157 Python tests, frontend unit tests, and 27 Playwright end-to-end tests against
   the production build. The end-to-end tests check the main flows, fail on any console or

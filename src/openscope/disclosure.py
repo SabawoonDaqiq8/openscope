@@ -27,6 +27,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import re
 from collections import defaultdict
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
@@ -185,6 +186,29 @@ def _value(metrics: dict[str, float | None] | None, key: str) -> float | None:
 
 
 # -- checks and basis of preparation ----------------------------------------------------------
+_YEAR = re.compile(r"\b(?:19|20)\d\d\b")
+
+
+def _editions(inv: Inventory) -> dict[str, set[str]]:
+    """Factor sources by family (the name without years) -> the years used."""
+    out: dict[str, set[str]] = defaultdict(set)
+    for r in inv.headline_results():
+        years = _YEAR.findall(r.factor_source)
+        if years:
+            out[" ".join(_YEAR.sub("", r.factor_source).split())].update(years)
+    return out
+
+
+def _edition_changes(prior: Inventory, current: Inventory) -> str:
+    before, now = _editions(prior), _editions(current)
+    changes = [
+        f"{family}: {', '.join(sorted(before[family]))} → {', '.join(sorted(now[family]))}"
+        for family in sorted(before.keys() & now.keys())
+        if before[family] != now[family]
+    ]
+    return "; ".join(changes)
+
+
 def _cat3_checks(inv: Inventory) -> list[Check]:
     cat3 = [r for r in inv.results if r.scope3_category == Scope3Category.FUEL_AND_ENERGY_RELATED]
     derived = [r for r in cat3 if r.derived_from]
@@ -314,6 +338,16 @@ def _checks(
                 Level.INFO,
                 "comparatives",
                 "No prior-year inventory selected; comparative figures are left blank.",
+            )
+        )
+    elif changed := _edition_changes(prior.inventory, inv):
+        checks.append(
+            Check(
+                Level.INFO,
+                "factor-editions",
+                f"The comparative year uses different factor editions ({changed}). Part of the "
+                "change against the prior year comes from updated factors and methods, not "
+                "activity, so explain significant effects.",
             )
         )
     checks.extend(_cat3_checks(inv))

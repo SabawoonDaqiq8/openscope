@@ -20,6 +20,7 @@ Empty cells are treated as missing.
 from __future__ import annotations
 
 import csv
+import re
 from collections.abc import Iterable, Iterator
 from importlib import resources
 from pathlib import Path
@@ -37,9 +38,21 @@ from openscope.models import (
 _BUNDLED = "sample_factors.csv"
 _DATASETS = {
     "sample": _BUNDLED,
+    "desnz-2024": "desnz_2024.csv",
     "desnz-2025": "desnz_2025.csv",
+    "desnz-2026": "desnz_2026.csv",
     "useeio-1.3": "useeio_1_3.csv",
 }
+
+# Yearly datasets name factors "<SOURCE>-<year>-<id>", e.g. DESNZ-2025-1_100_1004_6. The same
+# factor without the year ("DESNZ-1_100_1004_6") resolves to the edition for the activity's year.
+_YEARLY_ID = re.compile(r"^([A-Za-z][A-Za-z0-9]*)-((?:19|20)\d\d)-(.+)$")
+
+
+def generic_id(factor_id: str) -> str:
+    """The factor id without its dataset year: DESNZ-2025-1_100_1004_6 -> DESNZ-1_100_1004_6."""
+    m = _YEARLY_ID.match(factor_id)
+    return f"{m.group(1)}-{m.group(3)}" if m else factor_id
 
 
 CSV_COLUMNS = [
@@ -167,6 +180,7 @@ class FactorRegistry:
 
     def __init__(self, factors: Iterable[EmissionFactor] = ()) -> None:
         self._factors: dict[str, EmissionFactor] = {}
+        self._editions: dict[str, dict[int, str]] = {}  # generic id -> {year: factor id}
         for f in factors:
             self.add(f)
 
@@ -186,7 +200,17 @@ class FactorRegistry:
 
     @classmethod
     def dataset(cls, name: str) -> FactorRegistry:
-        """Load a published dataset bundled with openscope, e.g. ``"desnz-2025"``."""
+        """Load a published dataset bundled with openscope, e.g. ``"desnz-2025"``.
+
+        A name without a year (``"desnz"``) loads every bundled edition, so factor ids without
+        a year resolve to the edition for each activity's year.
+        """
+        editions = sorted(n for n in _DATASETS if n.startswith(f"{name.lower()}-"))
+        if name.lower() not in _DATASETS and editions:
+            merged = cls()
+            for n in editions:
+                merged = merged.merge(cls.dataset(n))
+            return merged
         file = _DATASETS.get(name.lower())
         if file is None:
             raise FactorError(f"Unknown dataset '{name}'. Available: {sorted(_DATASETS)}")
@@ -209,6 +233,9 @@ class FactorRegistry:
         if factor.factor_id in self._factors and not override:
             raise FactorError(f"Duplicate factor_id '{factor.factor_id}'")
         self._factors[factor.factor_id] = factor
+        if m := _YEARLY_ID.match(factor.factor_id):
+            key = f"{m.group(1)}-{m.group(3)}"
+            self._editions.setdefault(key, {})[int(m.group(2))] = factor.factor_id
 
     def merge(self, other: FactorRegistry) -> FactorRegistry:
         """Return a new registry where ``other``'s factors override this one's."""
@@ -223,6 +250,41 @@ class FactorRegistry:
             return self._factors[factor_id]
         except KeyError:
             raise FactorError(f"Unknown factor_id '{factor_id}'") from None
+
+    def resolve(self, factor_id: str, year: int | None) -> tuple[EmissionFactor, str | None]:
+        """A factor by exact id, or by id without its year (the edition for ``year``).
+
+        Returns the factor and, when an edition was chosen, a note for the audit trail. The
+        edition is the one for ``year``, else the latest earlier one, else the earliest one.
+        """
+        if factor_id in self._factors:
+            return self._factors[factor_id], None
+        editions = self._editions.get(factor_id)
+        if not editions:
+            raise FactorError(f"Unknown factor_id '{factor_id}'")
+        years = sorted(editions)
+        if year is None:
+            chosen = years[-1]
+            note = f"Edition: {chosen} (latest; the activity has no year)"
+        elif year in editions:
+            chosen = year
+            note = f"Edition: {chosen}, matching the activity year"
+        elif earlier := [y for y in years if y < year]:
+            chosen = earlier[-1]
+            note = (
+                f"WARNING: no {year} edition of {factor_id}; using {chosen}, the latest earlier one"
+            )
+        else:
+            chosen = years[0]
+            note = (
+                f"WARNING: no {year} or earlier edition of {factor_id}; using {chosen}, "
+                "the earliest available"
+            )
+        return self._factors[editions[chosen]], note
+
+    def editions(self, factor_id: str) -> list[int]:
+        """Years available for an id without its year (empty if it has none)."""
+        return sorted(self._editions.get(factor_id, {}))
 
     def search(
         self,

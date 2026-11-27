@@ -14,8 +14,8 @@
 Scope 1, 2 and 3 emissions, where every number can be traced back to its activity data,
 emission factor, unit conversion and GWP.
 
-> Status: **alpha (v0.11)**: core engine, official factor datasets (**UK DESNZ 2025**, 2,672
-> factors, and **US EPA supply chain factors v1.3**, 1,016 spend-based factors) plus an
+> Status: **alpha (v0.12)**: core engine, official factor datasets (**UK DESNZ 2024, 2025 and
+> 2026**, about 2,670 factors each, matched to each activity's year, and **US EPA supply chain factors v1.3**, 1,016 spend-based factors) plus an
 > importer for **EU residual mixes (AIB)**, Scope 3 Category 3 derived from Scope 1 and 2, an
 > **AI-assisted Scope 3 spend classifier** with human review and an audit trail, a
 > **decarbonisation pathway simulator** (MACC, science-based targets, Monte Carlo), **ESRS E1-4,
@@ -68,7 +68,7 @@ engagement…) against your inventory:
 
 ```bash
 openscope pathway examples/uk_demo_activities.csv --scenario examples/pathway_demo_scenario.json \
-    --dataset desnz-2025 --gwp AR5 --derive-cat3
+    --dataset desnz --gwp AR5 --derive-cat3
 ```
 
 The demo scenario's costs and reductions are **illustrative assumptions** and are flagged in the
@@ -86,7 +86,7 @@ the pathway page and exported as Markdown, CSV or JSON:
 
 ```bash
 openscope pathway examples/uk_demo_activities.csv --scenario examples/pathway_demo_scenario.json \
-    --dataset desnz-2025 --gwp AR5 --derive-cat3 --year 2025 --e1-4 md --out e1-4.md
+    --dataset desnz --gwp AR5 --derive-cat3 --year 2025 --e1-4 md --out e1-4.md
 ```
 
 ### Climate disclosure (ESRS E1-6 · IFRS S2)
@@ -115,7 +115,7 @@ Turns inventories into the GHG emissions table each framework asks for:
 
 ```bash
 openscope disclose examples/uk_demo_activities.csv --prior examples/uk_demo_activities_2024.csv \
-    --dataset desnz-2025 --derive-cat3 --year 2025 --net-revenue 12500000 --currency GBP \
+    --dataset desnz --derive-cat3 --year 2025 --net-revenue 12500000 --currency GBP \
     --ets-share 0 --grid-mix 40,15,45   # fossil,nuclear,renewable % where the factors publish no mix
 ```
 
@@ -170,7 +170,7 @@ openscope's design principles:
 pip install -e ".[dev]"
 
 # A UK company inventory computed entirely with official DESNZ 2025 factors
-openscope calculate examples/uk_demo_activities.csv --dataset desnz-2025 --gwp AR5 --year 2025 \
+openscope calculate examples/uk_demo_activities.csv --dataset desnz --gwp AR5 --year 2025 \
     --derive-cat3
 ```
 
@@ -249,13 +249,22 @@ precision. See [docs/classification.md](docs/classification.md).
 ### Factor datasets
 
 ```bash
-openscope datasets                                   # bundled: desnz-2025, useeio-1.3, sample
-openscope factors --dataset desnz-2025 --search "Hotel stay"
+openscope datasets                                   # desnz-2024..2026, useeio-1.3, sample
+openscope factors --dataset desnz-2026 --search "Hotel stay"
 openscope import-desnz ghg-conversion-factors-2026-flat-format.xlsx --out desnz_2026.csv
 openscope import-useeio SupplyChainGHGEmissionFactors_v1.3.0_NAICS_byGHG_USD2022.csv \
     --co2e SupplyChainGHGEmissionFactors_v1.3.0_NAICS_CO2e_USD2022.csv --out useeio.csv
 openscope import-aib "2025_Final _Residual mix calculation results.xlsx" --out aib_2025.csv
 ```
+
+**Factor editions matched to the year.** DESNZ publishes a new edition every June, and an
+inventory should use the edition for its own year. Write the factor id without the year
+(`DESNZ-7_400_4000_5`) and load every edition (`--dataset desnz`; the server does by default):
+each activity gets the edition for the year of its period, or the reporting year, and the
+trace records which. A year with no edition uses the latest earlier one, with a warning. An id
+with a year (`DESNZ-2025-7_400_4000_5`) is used exactly as written. When the comparative year
+uses a different edition, the disclosure notes it, because part of the change then comes from
+updated factors and methods rather than activity.
 
 **EU electricity (AIB residual and production mixes).** `import-aib` converts the
 [AIB European Residual Mixes](https://www.aib-net.org/facts/european-residual-mix) workbook
@@ -300,8 +309,9 @@ Later files override earlier ones by `factor_id`.
 
 ## ⚠️ About the bundled factors
 
-* **`desnz-2025`**: the complete UK Government GHG Conversion Factors for Company Reporting
-  2025 (flat file v1), imported unmodified apart from unit and GWP handling.
+* **`desnz-2024`, `desnz-2025`, `desnz-2026`**: the complete UK Government GHG Conversion
+  Factors for Company Reporting (flat files: 2024 v1.1, 2025 v1, 2026 revised July 2026),
+  imported unmodified apart from unit and GWP handling.
   Contains public sector information licensed under the
   [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).
 * **`useeio-1.3`**: US EPA Supply Chain GHG Emission Factors v1.3.0 by NAICS-6

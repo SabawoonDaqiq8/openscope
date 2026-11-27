@@ -47,6 +47,27 @@ and reconcile with the published total within 0.5%, openscope stores them as gas
 total is stored with its `gwp_basis`: AR5, or AR4 for well-to-tank bioenergy (methodology
 paper Table 1). Some refrigerants use AR6 GWPs where AR5 values do not exist.
 
+### DESNZ editions and the reporting year
+
+openscope bundles the 2024, 2025 and 2026 DESNZ editions (`desnz-2024`, `desnz-2025`,
+`desnz-2026`; `desnz` loads all three). The 2026 flat file is the revised one of 31 July 2026,
+which corrects values first published as 0. All three use AR5 GWPs for per-gas values, so the
+same conversion back to gas masses applies (2026 methodology paper, Table 1).
+
+A factor id names its edition: `DESNZ-2025-7_400_4000_5`. The same id without the year,
+`DESNZ-7_400_4000_5`, resolves per activity to the edition for the year of the activity's
+period (its end date, else its start date, else the reporting year). Without that edition, the
+latest earlier one is used, then the earliest, each with a warning in the trace. This relies on
+DESNZ keeping an id's meaning from year to year; a test checks that every id keeps the same
+unit and scope across editions. 574 ids changed their wording between 2024 and 2026, all
+relabels: HGV refrigeration wording, and waste "combustion" renamed "incineration with energy
+recovery".
+
+When the prior year uses a different edition, the disclosure notes it (`factor-editions`),
+because part of the change against the prior year then comes from factor and method updates
+rather than activity. DESNZ's 2025 update is an example: new CAA data reduced long-haul
+economy flight factors by over 40 %.
+
 ### US EPA supply chain factors (USEEIO)
 
 `useeio-1.3` is imported from EPA's per-gas file, with margins, in 2022 USD purchaser prices.

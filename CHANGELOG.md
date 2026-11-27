@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.12.0
+### Added
+- **DESNZ 2026** conversion factors (revised flat file of 31 July 2026) and **DESNZ 2024**,
+  alongside 2025: `desnz-2024`, `desnz-2025`, `desnz-2026`, and `desnz` for all three
+- **Factors matched to the activity year**: an id without its year (`DESNZ-7_400_4000_5`)
+  resolves to the edition for the activity's period or the reporting year, falling back to
+  the latest earlier edition with a warning; the trace records the edition
+- Readiness check `factor-editions` when the comparative year uses different factor editions
+- A test that every DESNZ id keeps its unit and scope across editions
+
+### Changed
+- The server loads all three DESNZ editions by default
+- The demo files use year-free ids, so the 2024 comparatives now use 2024 factors (2024
+  total 904.2 t instead of 795.2 t); derived Category 3 lines follow the same edition, and a
+  manual Category 3 line with a year-free id still prevents double counting
+- The case study, README screenshots and copy describe the year-matched comparatives
+
 ## 0.11.0
 ### Added
 - **ESRS E1-4 GHG emission reduction targets** from pathway scenarios (`openscope.targets`):

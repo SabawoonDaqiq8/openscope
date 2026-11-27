@@ -385,7 +385,9 @@ def build_parser() -> argparse.ArgumentParser:
     common.add_argument("--factors", action="append", help="Extra factor CSV (repeatable)")
     common.add_argument("--no-bundled", action="store_true", help="Ignore the sample factors")
     common.add_argument(
-        "--dataset", action="append", help="Bundled dataset, e.g. desnz-2025 (repeatable)"
+        "--dataset",
+        action="append",
+        help="Bundled dataset, e.g. desnz-2025, or desnz for every edition (repeatable)",
     )
     common.add_argument(
         "--derive-cat3",

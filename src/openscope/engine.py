@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from openscope import quality, units
 from openscope.errors import FactorError, OpenScopeError
 from openscope.factors import FactorRegistry
+from openscope.factors.registry import generic_id
 from openscope.gwp import GWPSet, gwp
 from openscope.models import (
     ActivityRecord,
@@ -106,12 +107,16 @@ class Calculator:
         if factor is None:
             if not activity.factor_id:
                 raise FactorError(f"Activity {activity.activity_id} has no factor_id")
-            factor = self.registry.get(activity.factor_id)
+            factor, edition = self.registry.resolve(activity.factor_id, self._year(activity))
+        else:
+            edition = None
 
         trace: list[str] = [
             f"Factor {factor.factor_id} — {factor.name} [{factor.source}"
             f"{', ' + str(factor.year) if factor.year else ''}; {factor.status.value}]"
         ]
+        if edition:
+            trace.append(edition)
 
         scope2_method = self._resolve_scope2_method(activity, factor)
         self._check_applicability(activity, factor, trace)
@@ -202,6 +207,11 @@ class Calculator:
             supply_mix=factor.supply_mix,
         )
 
+    def _year(self, activity: ActivityRecord) -> int | None:
+        """The year an activity happened in: its period, else the reporting year."""
+        d = activity.period_end or activity.period_start
+        return d.year if d else self.reporting_year
+
     def calculate_many(self, activities: Iterable[ActivityRecord]) -> BatchResult:
         """Calculate a batch; failures are collected rather than aborting the run."""
         acts = list(activities)
@@ -223,7 +233,7 @@ class Calculator:
         line in the input already uses is not derived again, so nothing is counted twice.
         """
         manual = {
-            a.factor_id
+            generic_id(a.factor_id)
             for a in activities
             if a.scope3_category == Scope3Category.FUEL_AND_ENERGY_RELATED and a.factor_id
         }
@@ -240,7 +250,7 @@ class Calculator:
                 continue
             source = by_id[r.activity_id]
             for fid in self.registry.get(r.factor_id).cat3_factor_ids:
-                if fid in manual:
+                if generic_id(fid) in manual:
                     batch.cat3_skipped.append(f"{source.activity_id}: {fid}")
                     continue
                 if fid not in self.registry:

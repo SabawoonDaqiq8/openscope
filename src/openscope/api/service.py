@@ -584,7 +584,7 @@ class Service:
     # -- demo -----------------------------------------------------------------------------------
     def _demo_file(self, name: str) -> Path | None:
         d = self.settings.demo_dir
-        if d is None or "desnz-2025" not in self.settings.datasets:
+        if d is None or not any(n.startswith("desnz") for n in self.settings.datasets):
             return None
         p = d / name
         return p if p.is_file() else None
