@@ -1,6 +1,6 @@
 # openscope
 
-**[▶ Live demo](https://openscope-xi6p.onrender.com/overview)** · [Documentation](docs/methodology.md) · [Roadmap](ROADMAP.md)
+**[▶ Live demo](https://openscope-xi6p.onrender.com/overview)** · [Case study](docs/case-study.md) · [Documentation](docs/methodology.md) · [Roadmap](ROADMAP.md)
 
 [![Live demo](https://img.shields.io/badge/live%20demo-onrender.com-46e3b7)](https://openscope-xi6p.onrender.com/overview)
 [![CI](https://github.com/SabawoonDaqiq8/openscope/actions/workflows/ci.yml/badge.svg)](https://github.com/SabawoonDaqiq8/openscope/actions/workflows/ci.yml)
@@ -14,12 +14,16 @@
 Scope 1, 2 and 3 emissions, where every number can be traced back to its activity data,
 emission factor, unit conversion and GWP.
 
-> Status: **alpha (v0.6)**: core engine, official factor datasets (**UK DESNZ 2025**, 2,672
-> factors, and **US EPA supply chain factors v1.3**, 1,016 spend-based factors), an
+> Status: **alpha (v0.11)**: core engine, official factor datasets (**UK DESNZ 2025**, 2,672
+> factors, and **US EPA supply chain factors v1.3**, 1,016 spend-based factors) plus an
+> importer for **EU residual mixes (AIB)**, Scope 3 Category 3 derived from Scope 1 and 2, an
 > **AI-assisted Scope 3 spend classifier** with human review and an audit trail, a
-> **decarbonisation pathway simulator** (MACC, science-based targets, Monte Carlo), **ESRS E1-5 /
-> E1-6 and IFRS S2 disclosure tables** (energy mix, biogenic CO2) with readiness checks, and a
-> **web dashboard** (FastAPI + Angular).
+> **decarbonisation pathway simulator** (MACC, science-based targets, Monte Carlo), **ESRS E1-4,
+> E1-5 and E1-6 and IFRS S2 disclosures** (targets, energy mix, biogenic CO2) with readiness
+> checks, and a **web dashboard** (FastAPI + Angular).
+>
+> New here? The **[case study](docs/case-study.md)** follows a fictional company from its
+> purchase ledger to an ESRS climate disclosure.
 
 ![openscope dashboard](docs/images/dashboard-overview-light.png)
 
