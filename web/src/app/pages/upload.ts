@@ -55,6 +55,21 @@ import { Notice } from '../shared/ui';
             />
           </label>
         </div>
+        <label class="flex items-start gap-2 text-sm">
+          <input
+            type="checkbox"
+            class="mt-1"
+            [checked]="deriveCat3()"
+            (change)="deriveCat3.set($any($event.target).checked)"
+          />
+          <span
+            >Derive Scope 3 Category 3 (well-to-tank, transmission and distribution losses) from
+            Scope 1 and 2 lines
+            <span class="block text-xs text-muted"
+              >Upstream factors your file already uses are not added again.</span
+            ></span
+          >
+        </label>
         <input
           type="file"
           accept=".csv,text/csv"
@@ -147,6 +162,7 @@ export class UploadPage {
   protected readonly invName = signal('My inventory');
   protected readonly gwp = signal('AR6');
   protected readonly year = signal<number | null>(new Date().getFullYear() - 1);
+  protected readonly deriveCat3 = signal(true);
   protected readonly actFile = signal<File | null>(null);
 
   protected readonly runName = signal('Purchase ledger');
@@ -168,6 +184,7 @@ export class UploadPage {
         name: this.invName(),
         gwp_set: this.gwp(),
         reporting_year: this.year(),
+        derive_cat3: this.deriveCat3(),
       })
       .subscribe({
         next: (d) => this.done(['/overview', String(d.id)]),

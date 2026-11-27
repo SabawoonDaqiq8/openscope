@@ -57,6 +57,9 @@
 - AIB residual-mix (market-based) and production-mix (location-based) factors per country;
   the factors' generation mix fills the E1-5 energy mix
 
+## v0.10 — Scope 3 Category 3 ✅
+- Fuel- and energy-related activities derived from Scope 1 and 2 lines
+
 ## Later
 - ESRS XBRL tagging; E1-4 targets from pathway scenarios; energy content for vehicle-distance factors
 - PCAF financed-emissions module

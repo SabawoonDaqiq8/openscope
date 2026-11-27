@@ -146,7 +146,7 @@ def test_demo_scenario_on_uk_demo_inventory(capsys: pytest.CaptureFixture[str]) 
         [
             "pathway", str(EX / "uk_demo_activities.csv"),
             "--scenario", str(EX / "pathway_demo_scenario.json"),
-            "--dataset", "desnz-2025", "--gwp", "AR5", "--json",
+            "--dataset", "desnz-2025", "--gwp", "AR5", "--json", "--derive-cat3",
         ]
     )  # fmt: skip
     assert rc == 0

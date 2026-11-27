@@ -66,9 +66,17 @@ def cmd_calculate(args: argparse.Namespace) -> int:
             prices=PriceIndex.from_csv(args.price_index) if args.price_index else PriceIndex(),
         )
     calc = Calculator(
-        _registry(args.factors, args.no_bundled, args.dataset), args.gwp, args.year, normaliser
+        _registry(args.factors, args.no_bundled, args.dataset),
+        args.gwp,
+        args.year,
+        normaliser,
+        derive_cat3=args.derive_cat3,
     )
     batch = calc.calculate_many(read_activities(args.activities))
+    if batch.derived:
+        print(f"Derived {len(batch.derived)} Scope 3 Category 3 lines", file=sys.stderr)
+    for skipped in batch.cat3_skipped:
+        print(f"  not derived (already reported): {skipped}", file=sys.stderr)
     inv = Inventory(batch.results)
 
     if args.out:
@@ -133,6 +141,7 @@ def cmd_import_desnz(args: argparse.Namespace) -> int:
     print(f"  energy-conversion rows skipped: {report.skipped_energy_rows}")
     print(f"  with energy content (E1-5):     {report.energy_linked}")
     print(f"  with biogenic CO2 linked:       {report.biogenic_linked}")
+    print(f"  with Category 3 upstream links: {report.cat3_linked}")
     if report.skipped_unknown_unit:
         print(f"  skipped (unmapped units):       {report.skipped_unknown_unit}")
     return 0
@@ -196,7 +205,12 @@ def cmd_pathway(args: argparse.Namespace) -> int:
 
     from openscope.pathway import Scenario, run
 
-    calc = Calculator(_registry(args.factors, args.no_bundled, args.dataset), args.gwp, None)
+    calc = Calculator(
+        _registry(args.factors, args.no_bundled, args.dataset),
+        args.gwp,
+        None,
+        derive_cat3=args.derive_cat3,
+    )
     acts = read_activities(args.activities)
     batch = calc.calculate_many(acts)
     with open(args.scenario, encoding="utf-8") as fh:
@@ -249,7 +263,8 @@ def cmd_disclose(args: argparse.Namespace) -> int:
         nonlocal errors
         if path is None:
             return None
-        batch = Calculator(reg, args.gwp, year).calculate_many(read_activities(path))
+        calc = Calculator(reg, args.gwp, year, derive_cat3=args.derive_cat3)
+        batch = calc.calculate_many(read_activities(path))
         if path == args.activities:
             errors = len(batch.errors)
         return dc.Period(Inventory(batch.results), year, args.gwp)
@@ -357,6 +372,11 @@ def build_parser() -> argparse.ArgumentParser:
     common.add_argument("--no-bundled", action="store_true", help="Ignore the sample factors")
     common.add_argument(
         "--dataset", action="append", help="Bundled dataset, e.g. desnz-2025 (repeatable)"
+    )
+    common.add_argument(
+        "--derive-cat3",
+        action="store_true",
+        help="Add Scope 3 Category 3 lines (well-to-tank, T&D losses) for Scope 1/2 lines",
     )
 
     c = sub.add_parser("calculate", parents=[common], help="Calculate emissions from a CSV")

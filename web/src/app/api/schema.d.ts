@@ -338,6 +338,11 @@ export interface components {
         /** Body_create_inventory_api_inventories_post */
         Body_create_inventory_api_inventories_post: {
             /**
+             * Derive Cat3
+             * @default false
+             */
+            derive_cat3: boolean;
+            /**
              * File
              * @description Activities CSV
              */
@@ -672,6 +677,8 @@ export interface components {
             co2e_kg: number;
             /** Data Quality Score */
             data_quality_score: number;
+            /** Derived From */
+            derived_from?: string | null;
             /** Description */
             description: string;
             /** Factor Id */

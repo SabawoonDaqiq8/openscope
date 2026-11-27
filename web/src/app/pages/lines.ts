@@ -72,6 +72,9 @@ import { Notice } from '../shared/ui';
                   <span class="block">{{ l.description || l.activity_id }}</span>
                   <span class="block text-xs text-muted">
                     {{ l.activity_id }}{{ l.site ? ' · ' + l.site : '' }}
+                    @if (l.derived_from) {
+                      · <span title="Derived automatically from {{ l.derived_from }}">derived</span>
+                    }
                   </span>
                 </button>
               </td>

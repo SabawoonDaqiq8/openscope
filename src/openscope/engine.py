@@ -11,11 +11,13 @@ from openscope.factors import FactorRegistry
 from openscope.gwp import GWPSet, gwp
 from openscope.models import (
     ActivityRecord,
+    CalculationMethod,
     EmissionFactor,
     EmissionResult,
     FactorStatus,
     Scope,
     Scope2Method,
+    Scope3Category,
 )
 from openscope.money import SpendNormalisationError, SpendNormaliser
 
@@ -28,6 +30,18 @@ def _fmt(x: float) -> str:
     return f"{x:,.6g}"
 
 
+def cat3_kind(factor: EmissionFactor) -> tuple[str, str]:
+    """Short code and label of a Category 3 upstream factor, from its name."""
+    name = factor.name.lower()
+    wtt = name.startswith("wtt") or "well-to-tank" in name
+    losses = "t&d" in name or "transmission" in name or "distribution" in name
+    if wtt and losses:
+        return "WTT-T&D", "upstream emissions of energy lost in transmission and distribution"
+    if losses:
+        return "T&D", "transmission and distribution losses"
+    return "WTT", "well-to-tank (upstream extraction, processing and transport of the energy)"
+
+
 @dataclass
 class CalculationError:
     activity_id: str
@@ -38,6 +52,14 @@ class CalculationError:
 class BatchResult:
     results: list[EmissionResult] = field(default_factory=list)
     errors: list[CalculationError] = field(default_factory=list)
+    # Category 3 activities derived from Scope 1/2 lines (see ``Calculator.derive_cat3``)
+    derived: list[ActivityRecord] = field(default_factory=list)
+    # upstream factors not derived because a Category 3 line already uses them
+    cat3_skipped: list[str] = field(default_factory=list)
+
+    def activities(self, given: Iterable[ActivityRecord]) -> dict[str, ActivityRecord]:
+        """Every activity behind the results, by id: the ones given plus the derived ones."""
+        return {a.activity_id: a for a in (*given, *self.derived)}
 
     @property
     def ok(self) -> bool:
@@ -59,6 +81,9 @@ class Calculator:
         FX rates and price indices for adapting spend to a spend-based factor's currency
         and price year. Without it, currency mismatches are errors and price-year
         mismatches produce a warning.
+    derive_cat3:
+        Add Scope 3 Category 3 lines (well-to-tank, transmission and distribution losses) for
+        each Scope 1/2 line whose factor links upstream factors (``cat3_factor_ids``).
     """
 
     def __init__(
@@ -67,11 +92,13 @@ class Calculator:
         gwp_set: GWPSet | str = GWPSet.AR6,
         reporting_year: int | None = None,
         spend_normaliser: SpendNormaliser | None = None,
+        derive_cat3: bool = False,
     ) -> None:
         self.registry = registry if registry is not None else FactorRegistry.bundled()
         self.gwp_set = GWPSet(gwp_set)
         self.reporting_year = reporting_year
         self.spend_normaliser = spend_normaliser
+        self.derive_cat3 = derive_cat3
 
     def calculate(
         self, activity: ActivityRecord, factor: EmissionFactor | None = None
@@ -177,13 +204,80 @@ class Calculator:
 
     def calculate_many(self, activities: Iterable[ActivityRecord]) -> BatchResult:
         """Calculate a batch; failures are collected rather than aborting the run."""
+        acts = list(activities)
         batch = BatchResult()
-        for a in activities:
+        for a in acts:
             try:
                 batch.results.append(self.calculate(a))
             except OpenScopeError as exc:
                 batch.errors.append(CalculationError(a.activity_id, str(exc)))
+        if self.derive_cat3:
+            self._derive_cat3(acts, batch)
         return batch
+
+    def _derive_cat3(self, activities: list[ActivityRecord], batch: BatchResult) -> None:
+        """Scope 3 Category 3 lines from Scope 1 fuels and Scope 2 electricity and heat.
+
+        Purchased electricity is counted once per site: location-based lines, or market-based
+        lines where the site has no location-based line. An upstream factor that a Category 3
+        line in the input already uses is not derived again, so nothing is counted twice.
+        """
+        manual = {
+            a.factor_id
+            for a in activities
+            if a.scope3_category == Scope3Category.FUEL_AND_ENERGY_RELATED and a.factor_id
+        }
+        lb_sites = {
+            r.site
+            for r in batch.results
+            if r.scope == Scope.SCOPE_2 and r.scope2_method == Scope2Method.LOCATION_BASED
+        }
+        by_id = {a.activity_id: a for a in activities}
+        for r in list(batch.results):
+            if r.scope == Scope.SCOPE_3 or r.factor_id not in self.registry:
+                continue
+            if r.scope2_method == Scope2Method.MARKET_BASED and r.site in lb_sites:
+                continue
+            source = by_id[r.activity_id]
+            for fid in self.registry.get(r.factor_id).cat3_factor_ids:
+                if fid in manual:
+                    batch.cat3_skipped.append(f"{source.activity_id}: {fid}")
+                    continue
+                if fid not in self.registry:
+                    continue
+                upstream = self.registry.get(fid)
+                code, label = cat3_kind(upstream)
+                derived = ActivityRecord(
+                    activity_id=f"{source.activity_id}:{code}",
+                    description=f"{source.description or source.activity_id}: {label}",
+                    quantity=source.quantity,
+                    unit=source.unit,
+                    scope=Scope.SCOPE_3,
+                    scope3_category=Scope3Category.FUEL_AND_ENERGY_RELATED,
+                    factor_id=fid,
+                    method=source.method
+                    if source.method != CalculationMethod.SUPPLIER_SPECIFIC
+                    else CalculationMethod.AVERAGE_DATA,
+                    period_start=source.period_start,
+                    period_end=source.period_end,
+                    site=source.site,
+                    supplier=source.supplier,
+                )
+                try:
+                    result = self.calculate(derived, upstream)
+                except OpenScopeError as exc:
+                    batch.errors.append(CalculationError(derived.activity_id, str(exc)))
+                    continue
+                note = (
+                    f"Derived from Scope {int(r.scope)} activity {source.activity_id}: "
+                    f"Scope 3 Category 3, {label}"
+                )
+                batch.derived.append(derived)
+                batch.results.append(
+                    result.model_copy(
+                        update={"trace": [note, *result.trace], "derived_from": source.activity_id}
+                    )
+                )
 
     def _normalise_spend(
         self, activity: ActivityRecord, factor: EmissionFactor, trace: list[str]

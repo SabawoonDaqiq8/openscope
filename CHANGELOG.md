@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.10.0
+### Added
+- **Scope 3 Category 3 derived from Scope 1 and 2**: well-to-tank emissions of fuels,
+  electricity and heat, transmission and distribution losses and their upstream emissions,
+  one traced line per upstream factor (`--derive-cat3`, `derive_cat3` on upload, a dashboard
+  option, on by default there)
+- Factors can link their upstream factors (`cat3_factor_ids`); the DESNZ importer links 552
+  of the 2025 factors from their IDs
+- Purchased electricity is counted once per site; upstream factors already used by a
+  Category 3 line are not derived again
+- Readiness checks: derived Category 3 lines (info), Scope 1/2 energy without Category 3
+  (warning); the line explorer marks derived lines
+
+### Changed
+- The demo inventories derive Category 3 instead of listing it by hand; the 2025 demo now
+  also includes the upstream emissions of electricity lost in the grid (the 2025 total stays
+  at 650 t)
+
 ## 0.9.0
 ### Added
 - **EU electricity factors from the AIB European Residual Mixes**: `openscope import-aib`

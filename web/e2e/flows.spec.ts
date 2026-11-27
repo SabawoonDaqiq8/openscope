@@ -32,11 +32,18 @@ test('line explorer expands the audit trail of a calculation', async ({ page }) 
     .selectOption({ label: 'Demo: UK company 2025 (DESNZ factors)' });
   await expect(page).toHaveURL(/\/overview\/\d+/);
   await page.getByRole('link', { name: /Line explorer/ }).click();
-  const toggle = page.getByRole('button', { name: /Audit trail for HQ boiler natural gas/ });
+  const toggle = page.getByRole('button', {
+    name: 'Audit trail for HQ boiler natural gas (gross CV)',
+    exact: true,
+  });
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   await expect(page.getByText(/CO2: 850,000 × 0\.18259 kg\/kWh/)).toBeVisible();
+
+  // its well-to-tank emissions were derived automatically as Scope 3 Category 3
+  await page.getByRole('button', { name: /Audit trail for HQ boiler .*: well-to-tank/ }).click();
+  await expect(page.getByText('Derived from Scope 1 activity S1-GAS')).toBeVisible();
 });
 
 test('scope 3 review: override a line, see it in the audit log, export it', async ({ page }) => {
@@ -90,7 +97,7 @@ test('pathways: demo scenario, Scope 3 shortfall, edit a lever and re-run', asyn
   await expect(page).toHaveURL(/\/pathways\/\d+/);
   await page.getByRole('button', { name: 'Load demo scenario' }).click();
   const scope3 = page.locator('.card', { hasText: 'Scope 3 target' });
-  await expect(scope3).toContainText('Short by 46.5 t');
+  await expect(scope3).toContainText('Short by 46.4 t');
   await expect(page.locator('.card', { hasText: 'Scope 1+2 target' })).toContainText('On track');
   await expect(
     page.getByRole('cell', { name: 'Travel policy: rail over short-haul, fewer long-haul trips' }),

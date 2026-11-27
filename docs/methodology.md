@@ -101,6 +101,41 @@ adjusted.
 Each Scope 3 activity must declare one of the 15 categories. Calculation method is recorded per
 line: `supplier_specific`, `hybrid`, `average_data`, `spend_based` or `estimated`.
 
+### Category 3, derived from Scope 1 and 2
+
+Category 3 (fuel- and energy-related activities not in Scope 1 or 2) is driven by the same
+quantities as Scope 1 and 2, so openscope can derive it (`--derive-cat3`, or the option on the
+dashboard upload). A factor lists its upstream factors in `cat3_factor_ids`, and each Scope 1/2
+line gets one Category 3 line per upstream factor, with the same quantity and unit:
+
+| Scope 1/2 line | Category 3 lines (GHG Protocol Scope 3 Standard, Table 5.4) |
+| --- | --- |
+| Fuels and bioenergy burnt on site | (a) well-to-tank: extraction, refining and transport of the fuel |
+| Owned cars and vans (per km) | (a) well-to-tank of the vehicle's fuel |
+| Purchased grid electricity | (b) well-to-tank of generation; (c) T&D losses; (b) well-to-tank of the energy lost |
+| Electricity for owned EVs | (c) T&D losses |
+| Purchased heat and steam | (b) well-to-tank; for district heat also the distribution loss and its well-to-tank |
+
+* **DESNZ links** are made by the importer from the factor IDs, which are
+  `<sheet>_<group>_<item>_<unit>`: an upstream factor of the same fuel or vehicle in the same
+  unit shares the item and unit. Where an upstream sheet has two matches (an HGV and a
+  refrigerated HGV) the one with the same name is kept. 552 of the 2025 factors are linked;
+  each DESNZ upstream factor in this table is also what a manual Category 3 line would use.
+* **Electricity is counted once per site**: from the location-based lines, or from the
+  market-based lines where a site has no location-based line. Category 3 is about the energy
+  actually consumed, whatever the contractual instrument; certificates do not remove upstream
+  emissions or grid losses.
+* **No double counting**: an upstream factor that a Category 3 line in the input already uses is
+  not derived again, and the CLI lists what was skipped. A line with an upstream factor from a
+  different source would still be counted twice, so check the readiness notes.
+* The derived lines inherit the source line's site, supplier, period and method (a
+  supplier-specific Scope 2 line gives average-data Category 3 lines), and the trace starts
+  with "Derived from Scope n activity ...".
+* Disclosure readiness reports how many lines were derived and warns when an inventory with
+  Scope 1/2 energy has no Category 3 at all.
+* AIB residual-mix factors carry no upstream links: the AIB publishes no well-to-tank or loss
+  factors.
+
 ## Data quality score (1 = best, 5 = worst)
 
 | Method | Base score |

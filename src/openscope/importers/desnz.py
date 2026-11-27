@@ -108,6 +108,7 @@ class ImportReport:
     total_only: int = 0
     energy_linked: int = 0
     biogenic_linked: int = 0
+    cat3_linked: int = 0
 
 
 def _gwp_basis(level1: str) -> str:
@@ -172,7 +173,61 @@ def parse_rows(rows: Iterable[Sequence[Any]], year: int) -> ImportReport:
             report.biogenic_linked += "biogenic_co2_kg" in update
         report.factors.append(factor)
     report.skipped_unknown_unit = dict(unknown)
+    report.factors = link_cat3(report.factors)
+    report.cat3_linked = sum(1 for f in report.factors if f.cat3_factor_ids)
     return report
+
+
+# Scope 1/2 sheet -> sheets holding its Category 3 upstream factors (the first part of the ID):
+# fuels -> WTT fuels; bioenergy -> WTT bioenergy; owned cars and vans -> WTT of their fuel;
+# grid electricity -> WTT generation, WTT of T&D and T&D losses; EV electricity -> T&D;
+# heat and steam -> WTT heat and steam and the district heating distribution loss.
+_CAT3_SHEETS = {1: (11,), 2: (12,), 4: (26,), 5: (28,), 7: (15, 13), 8: (14,), 10: (16, 13)}
+# district heat and steam (item 4003) also loses energy in distribution (item 4004)
+_CAT3_EXTRA_ITEMS = {"4003": ("4004",)}
+
+
+def _id_parts(factor_id: str) -> tuple[int, str, str, str] | None:
+    parts = factor_id.split("-")[-1].split("_")
+    if len(parts) != 4 or not parts[0].isdigit():
+        return None
+    return int(parts[0]), parts[1], parts[2], parts[3]
+
+
+def _tail(name: str) -> str:
+    """The name without its first level and 'WTT-' prefixes, for matching like with like."""
+    levels = [re.sub(r"^wtt-\s*", "", p.strip().lower()) for p in name.split(" / ")[1:]]
+    return " / ".join(levels)
+
+
+def link_cat3(factors: list[EmissionFactor]) -> list[EmissionFactor]:
+    """Link each Scope 1/2 factor to its Category 3 upstream factors (``cat3_factor_ids``).
+
+    DESNZ IDs are ``<sheet>_<group>_<item>_<unit>``; the upstream factor of the same fuel or
+    vehicle in the same unit shares the item and unit. Where one upstream sheet has several
+    matches (an HGV and a refrigerated HGV), the one with the same name is kept.
+    """
+    index: dict[tuple[int, str, str], list[EmissionFactor]] = defaultdict(list)
+    for f in factors:
+        if (p := _id_parts(f.factor_id)) is not None:
+            index[(p[0], p[2], p[3])].append(f)
+    out = []
+    for f in factors:
+        p = _id_parts(f.factor_id)
+        if p is None or p[0] not in _CAT3_SHEETS:
+            out.append(f)
+            continue
+        sheet, _, item, unit = p
+        links: list[str] = []
+        for target in _CAT3_SHEETS[sheet]:
+            for it in (item, *_CAT3_EXTRA_ITEMS.get(item, ())):
+                found = index.get((target, it, unit), [])
+                same = [m for m in found if _tail(m.name) == _tail(f.name)]
+                if len(found) > 1 and same:
+                    found = same
+                links += [m.factor_id for m in found]
+        out.append(f.model_copy(update={"cat3_factor_ids": tuple(links)}) if links else f)
+    return out
 
 
 KWH_PER_GJ = 1e3 / 3.6

@@ -128,10 +128,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         name: Annotated[str, Form(min_length=1, max_length=200)],
         gwp_set: Annotated[Literal["AR5", "AR6"], Form()] = "AR6",
         reporting_year: Annotated[int | None, Form()] = None,
+        derive_cat3: Annotated[bool, Form()] = False,
     ) -> schemas.InventoryDetail:
         content = await read_upload(file)
         row = service.create_inventory_from_csv(
-            session, content, name=name, gwp_set=gwp_set, reporting_year=reporting_year
+            session,
+            content,
+            name=name,
+            gwp_set=gwp_set,
+            reporting_year=reporting_year,
+            derive_cat3=derive_cat3,
         )
         return service.inventory_out(row, detail=True)  # type: ignore[return-value]
 

@@ -97,6 +97,11 @@
       },
       "Body_create_inventory_api_inventories_post": {
         "properties": {
+          "derive_cat3": {
+            "default": false,
+            "title": "Derive Cat3",
+            "type": "boolean"
+          },
           "file": {
             "contentMediaType": "application/octet-stream",
             "description": "Activities CSV",
@@ -1059,6 +1064,17 @@
             "title": "Data Quality Score",
             "type": "integer"
           },
+          "derived_from": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Derived From"
+          },
           "description": {
             "title": "Description",
             "type": "string"
@@ -1878,7 +1894,7 @@
   "info": {
     "description": "Open-source, auditable carbon accounting: GHG Protocol Scope 1, 2 and 3.",
     "title": "openscope API",
-    "version": "0.9.0"
+    "version": "0.10.0"
   },
   "openapi": "3.1.0",
   "paths": {

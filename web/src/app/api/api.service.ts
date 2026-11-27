@@ -78,13 +78,19 @@ export class ApiService {
 
   uploadInventory(
     file: File,
-    form: { name: string; gwp_set: string; reporting_year?: number | null },
+    form: {
+      name: string;
+      gwp_set: string;
+      reporting_year?: number | null;
+      derive_cat3?: boolean;
+    },
   ): Observable<InventoryDetail> {
     const body = new FormData();
     body.append('file', file);
     body.append('name', form.name);
     body.append('gwp_set', form.gwp_set);
     if (form.reporting_year) body.append('reporting_year', String(form.reporting_year));
+    if (form.derive_cat3) body.append('derive_cat3', 'true');
     return this.http.post<InventoryDetail>(`${this.base}/inventories`, body);
   }
 

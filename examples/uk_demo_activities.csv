@@ -5,15 +5,11 @@ S1-REFRIG,Office AC top-up R410A,4,kg,1,,,DESNZ-2025-3_201_2156_3,average_data,2
 S2-HQ-LB,HQ electricity,600,MWh,2,,location_based,DESNZ-2025-7_400_4000_5,average_data,2025-01-01,2025-12-31,HQ,
 S2-HQ-MB,HQ electricity - 100% REGO-backed tariff,600,MWh,2,,market_based,SCOPE2-EAC-RENEWABLE,supplier_specific,2025-01-01,2025-12-31,HQ,Green Supplier Ltd
 S2-WH-LB,Warehouse electricity,250,MWh,2,,location_based,DESNZ-2025-7_400_4000_5,average_data,2025-01-01,2025-12-31,Warehouse,
-S3-WTT-GAS,Well-to-tank natural gas,850000,kWh,3,3,,DESNZ-2025-11_100_1004_6,average_data,2025-01-01,2025-12-31,HQ,
-S3-WTT-DIESEL,Well-to-tank diesel,42000,L,3,3,,DESNZ-2025-11_101_1011_8,average_data,2025-01-01,2025-12-31,Fleet,
-S3-TD,Electricity transmission & distribution losses,850,MWh,3,3,,DESNZ-2025-13_402_4000_5,average_data,2025-01-01,2025-12-31,,
-S3-WTT-ELEC,Well-to-tank electricity generation,850,MWh,3,3,,DESNZ-2025-15_917_4000_5,average_data,2025-01-01,2025-12-31,,
 S3-FREIGHT,Inbound road freight (HGV average laden),520000,tkm,3,4,,DESNZ-2025-27_304_3140_14,average_data,2025-01-01,2025-12-31,,Haulage Co
 S3-WASTE,Commercial waste to landfill,22,t,3,5,,DESNZ-2025-20_507_5313_15,average_data,2025-01-01,2025-12-31,HQ,
 S3-AIR-SH,Short-haul flights (average passenger with RF),180000,pkm,3,6,,DESNZ-2025-21_316_3162_11,average_data,2025-01-01,2025-12-31,,
 S3-AIR-LH,Long-haul flights (economy with RF),950000,pkm,3,6,,DESNZ-2025-21_316_3170_11,average_data,2025-01-01,2025-12-31,,
 S3-RAIL,National rail,140000,pkm,3,6,,DESNZ-2025-25_315_3147_11,average_data,2025-01-01,2025-12-31,,
-S3-HOTEL,UK hotel nights,420,night,3,6,,DESNZ-2025-29_600_4000_13,average_data,2025-01-01,2025-12-31,,
-S3-HOME,Homeworking (equipment + heating),60000,fte_hour,3,7,,DESNZ-2025-32_603_9999_12,average_data,2025-01-01,2025-12-31,,
+S3-HOTEL,UK hotel nights,415,night,3,6,,DESNZ-2025-29_600_4000_13,average_data,2025-01-01,2025-12-31,,
+S3-HOME,Homeworking (equipment + heating),50000,fte_hour,3,7,,DESNZ-2025-32_603_9999_12,average_data,2025-01-01,2025-12-31,,
 S3-WATER,Water supply,3200,m3,3,1,,DESNZ-2025-17_404_4005_1,average_data,2025-01-01,2025-12-31,HQ,

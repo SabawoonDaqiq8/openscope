@@ -37,6 +37,7 @@ from openscope.inventory import Inventory
 from openscope.models import (
     CalculationMethod,
     EmissionResult,
+    EnergySource,
     Scope,
     Scope2Method,
     Scope3Category,
@@ -184,6 +185,39 @@ def _value(metrics: dict[str, float | None] | None, key: str) -> float | None:
 
 
 # -- checks and basis of preparation ----------------------------------------------------------
+def _cat3_checks(inv: Inventory) -> list[Check]:
+    cat3 = [r for r in inv.results if r.scope3_category == Scope3Category.FUEL_AND_ENERGY_RELATED]
+    derived = [r for r in cat3 if r.derived_from]
+    energy = [
+        r
+        for r in inv.results
+        if r.scope != Scope.SCOPE_3 and r.energy_source not in (None, EnergySource.NON_ENERGY)
+    ]
+    if derived:
+        t = sum(r.co2e_kg for r in derived) / 1000
+        sources = len({r.derived_from for r in derived})
+        return [
+            Check(
+                Level.INFO,
+                "cat3-derived",
+                f"{len(derived)} Scope 3 Category 3 lines ({t:,.1f} tCO2e) were derived from "
+                f"{sources} Scope 1/2 lines: well-to-tank emissions of fuels and electricity, "
+                "and transmission and distribution losses. Each line's trace names its source.",
+            )
+        ]
+    if energy and not cat3:
+        return [
+            Check(
+                Level.WARNING,
+                "cat3-missing",
+                "The inventory has Scope 1/2 fuel and energy lines but no Scope 3 Category 3 "
+                "(fuel- and energy-related activities). Recalculate with Category 3 derivation "
+                "on, or add well-to-tank and transmission-loss lines.",
+            )
+        ]
+    return []
+
+
 def _checks(
     framework: Framework,
     period: Period,
@@ -282,6 +316,7 @@ def _checks(
                 "No prior-year inventory selected; comparative figures are left blank.",
             )
         )
+    checks.extend(_cat3_checks(inv))
     biogenic = sum(biogenic_t(inv, s) for s in Scope)
     checks.append(
         Check(

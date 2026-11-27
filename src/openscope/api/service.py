@@ -203,11 +203,18 @@ class Service:
         activities: Sequence[ActivityRecord],
         gwp_set: str,
         reporting_year: int | None,
+        derive_cat3: bool = False,
     ) -> db.Inventory:
-        calc = Calculator(self.registry, gwp_set=gwp_set, reporting_year=reporting_year)
+        calc = Calculator(
+            self.registry,
+            gwp_set=gwp_set,
+            reporting_year=reporting_year,
+            derive_cat3=derive_cat3,
+        )
         batch = calc.calculate_many(activities)
         analytics = self.analytics(Inventory(batch.results), batch)
-        descriptions = {a.activity_id: a.description for a in activities}
+        acts = batch.activities(activities)
+        descriptions = {k: a.description for k, a in acts.items()}
         for h in analytics.hotspots:
             h.description = descriptions.get(h.activity_id, "")
 
@@ -219,7 +226,6 @@ class Service:
             summary=analytics.model_dump(mode="json"),
             errors=[e.model_dump() for e in analytics.errors],
         )
-        acts = {a.activity_id: a for a in activities}
         for r in batch.results:
             row.lines.append(
                 db.ResultLine(
@@ -242,6 +248,7 @@ class Service:
         name: str,
         gwp_set: str,
         reporting_year: int | None,
+        derive_cat3: bool = False,
     ) -> db.Inventory:
         path = _save_upload(content)
         try:
@@ -255,6 +262,7 @@ class Service:
             activities=activities,
             gwp_set=gwp_set,
             reporting_year=reporting_year,
+            derive_cat3=derive_cat3,
         )
         self._prune(session)
         return row
@@ -298,6 +306,7 @@ class Service:
             co2e_kg=r["co2e_kg"],
             data_quality_score=r["data_quality_score"],
             trace=r["trace"],
+            derived_from=r.get("derived_from"),
         )
 
     @staticmethod
@@ -586,6 +595,7 @@ class Service:
                 activities=read_activities(prior_file),
                 gwp_set="AR5",
                 reporting_year=2024,
+                derive_cat3=True,
             )
         if 2025 not in demo:
             demo[2025] = self.create_inventory(
@@ -595,6 +605,7 @@ class Service:
                 activities=read_activities(acts_file),
                 gwp_set="AR5",
                 reporting_year=2025,
+                derive_cat3=True,
             )
         inv = demo[2025]
         run = session.scalars(

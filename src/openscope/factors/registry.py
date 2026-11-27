@@ -10,6 +10,8 @@ scope, scope3_category, scope2_method, region, year, source, source_url, status,
 energy_kwh_per_unit, energy_source, biogenic_co2_kg   (optional; for ESRS E1-5 and biogenic CO2)
 fossil_share, nuclear_share, renewable_share         (optional; generation mix of an electricity
                                                       factor, as fractions summing to 1)
+cat3_factor_ids                                      (optional; ``;``-separated upstream factors
+                                                      for Scope 3 Category 3, same unit)
 
 ``other_gases`` is a ``;``-separated list of ``GAS=kg`` pairs, e.g. ``HFC-134A=1``.
 Empty cells are treated as missing.
@@ -65,6 +67,7 @@ CSV_COLUMNS = [
     "fossil_share",
     "nuclear_share",
     "renewable_share",
+    "cat3_factor_ids",
 ]
 
 
@@ -99,6 +102,7 @@ def _to_row(f: EmissionFactor) -> dict[str, str]:
         "fossil_share": _num(f.fossil_share),
         "nuclear_share": _num(f.nuclear_share),
         "renewable_share": _num(f.renewable_share),
+        "cat3_factor_ids": ";".join(f.cat3_factor_ids),
     }
 
 
@@ -150,6 +154,9 @@ def _parse_row(row: dict[str, str], line: int, origin: str) -> EmissionFactor:
             fossil_share=_share(row, "fossil_share"),
             nuclear_share=_share(row, "nuclear_share"),
             renewable_share=_share(row, "renewable_share"),
+            cat3_factor_ids=tuple(
+                x.strip() for x in (_opt(row, "cat3_factor_ids") or "").split(";") if x.strip()
+            ),
         )
     except (KeyError, ValueError) as exc:
         raise FactorError(f"{origin}:{line}: invalid factor row: {exc}") from exc

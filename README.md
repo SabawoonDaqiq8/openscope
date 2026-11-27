@@ -64,7 +64,7 @@ engagement…) against your inventory:
 
 ```bash
 openscope pathway examples/uk_demo_activities.csv --scenario examples/pathway_demo_scenario.json \
-    --dataset desnz-2025 --gwp AR5
+    --dataset desnz-2025 --gwp AR5 --derive-cat3
 ```
 
 The demo scenario's costs and reductions are **illustrative assumptions** and are flagged in the
@@ -96,8 +96,8 @@ Turns inventories into the GHG emissions table each framework asks for:
 
 ```bash
 openscope disclose examples/uk_demo_activities.csv --prior examples/uk_demo_activities_2024.csv \
-    --dataset desnz-2025 --year 2025 --net-revenue 12500000 --currency GBP --ets-share 0 \
-    --grid-mix 40,15,45   # fossil,nuclear,renewable % where the factors publish no mix
+    --dataset desnz-2025 --derive-cat3 --year 2025 --net-revenue 12500000 --currency GBP \
+    --ets-share 0 --grid-mix 40,15,45   # fossil,nuclear,renewable % where the factors publish no mix
 ```
 
 References are to ESRS Set 1 (Delegated Regulation (EU) 2023/2772) and IFRS S2. The EU Omnibus
@@ -151,7 +151,8 @@ openscope's design principles:
 pip install -e ".[dev]"
 
 # A UK company inventory computed entirely with official DESNZ 2025 factors
-openscope calculate examples/uk_demo_activities.csv --dataset desnz-2025 --gwp AR5 --year 2025
+openscope calculate examples/uk_demo_activities.csv --dataset desnz-2025 --gwp AR5 --year 2025 \
+    --derive-cat3
 ```
 
 ```text
@@ -161,16 +162,21 @@ GHG inventory summary (tCO2e)
   Scope 2 (location-based)                       150.458
   Scope 2 (market-based)                          44.252
     (grid-average fallback for: Warehouse)
-  Scope 3                                        334.580
+  Scope 3                                        334.565
     1. Purchased goods and services                0.612
-    3. Fuel- and energy-related activities       106.106
+    3. Fuel- and energy-related activities       109.481
     4. Upstream transportation and distribut      52.848
     5. Waste generated in operations              11.452
-    6. Business travel                           143.535
-    7. Employee commuting                         20.027
+    6. Business travel                           143.483
+    7. Employee commuting                         16.689
 ────────────────────────────────────────────────────────────
-  Total                                          650.019
+  Total                                          650.004
 ```
+
+`--derive-cat3` adds **Scope 3 Category 3** (fuel- and energy-related activities) for every
+Scope 1 fuel and Scope 2 electricity or heat line: well-to-tank emissions, transmission and
+distribution losses, and the upstream emissions of the energy lost. The demo file lists no
+Category 3 lines; all 8 are derived, and each trace names the line it came from.
 
 Add `--trace` to see the audit trail for every line:
 

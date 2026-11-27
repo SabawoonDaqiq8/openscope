@@ -133,6 +133,9 @@ class EmissionFactor(BaseModel):
     fossil_share: float | None = Field(default=None, ge=0, le=1)
     nuclear_share: float | None = Field(default=None, ge=0, le=1)
     renewable_share: float | None = Field(default=None, ge=0, le=1)
+    # upstream factors for Scope 3 Category 3 (fuel- and energy-related activities), applied to
+    # the same activity quantity: well-to-tank, transmission and distribution losses
+    cat3_factor_ids: tuple[str, ...] = ()
 
     @model_validator(mode="after")
     def _has_values(self) -> EmissionFactor:
@@ -222,6 +225,8 @@ class EmissionResult(BaseModel):
     biogenic_co2_kg: float | None = None
     # (fossil, nuclear, renewable) generation mix of the electricity factor, if published
     supply_mix: tuple[float, float, float] | None = None
+    # for a Category 3 line derived automatically: the Scope 1/2 activity it comes from
+    derived_from: str | None = None
 
     @property
     def co2e_t(self) -> float:

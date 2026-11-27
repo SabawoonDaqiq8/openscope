@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "openscope"
-version = "0.9.0"
+version = "0.10.0"
 description = "Open-source carbon accounting engine: GHG Protocol Scope 1, 2 and 3 calculations with transparent, auditable emission factors."
 readme = "README.md"
 license = { text = "MIT" }

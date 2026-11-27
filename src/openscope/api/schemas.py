@@ -116,6 +116,7 @@ class InventoryDetail(InventoryOut):
 
 class LineOut(BaseModel):
     activity_id: str
+    derived_from: str | None = None  # Scope 1/2 activity a derived Category 3 line comes from
     description: str
     site: str | None
     supplier: str | None
