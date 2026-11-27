@@ -193,7 +193,6 @@ Some decisions were about what *not* to do:
 ## What I'd build next
 
 * XBRL tagging of the ESRS tables against the EFRAG taxonomy.
-* EEA grid factors for location-based EU electricity (CC BY, so they can be bundled).
 * PCAF financed emissions for banks and investors.
 * Intensity targets and year-on-year progress tracking in E1-4.
 

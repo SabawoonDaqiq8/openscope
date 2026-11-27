@@ -42,6 +42,7 @@ _DATASETS = {
     "desnz-2025": "desnz_2025.csv",
     "desnz-2026": "desnz_2026.csv",
     "useeio-1.3": "useeio_1_3.csv",
+    "eea-electricity": "eea_electricity.csv",
 }
 
 # Yearly datasets name factors "<SOURCE>-<year>-<id>", e.g. DESNZ-2025-1_100_1004_6. The same

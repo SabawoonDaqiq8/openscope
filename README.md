@@ -257,6 +257,14 @@ openscope import-useeio SupplyChainGHGEmissionFactors_v1.3.0_NAICS_byGHG_USD2022
 openscope import-aib "2025_Final _Residual mix calculation results.xlsx" --out aib_2025.csv
 ```
 
+**EU grid electricity (EEA), bundled.** `eea-electricity` holds the European Environment
+Agency's GHG intensity of electricity generation for the 27 Member States and the EU-27
+average, 2015–2025 (g CO2e/kWh, generation-based; 2025 is an EEA early estimate). Use it as
+the location-based factor: `EEA-DE` resolves to the year of each activity. The EEA allows
+reuse with acknowledgement; refresh it with `openscope import-eea` (see
+[`importers/eea.py`](src/openscope/importers/eea.py) for the JSON source). Pair it with the
+AIB residual mix for market-based figures.
+
 **Factor editions matched to the year.** DESNZ publishes a new edition every June, and an
 inventory should use the edition for its own year. Write the factor id without the year
 (`DESNZ-7_400_4000_5`) and load every edition (`--dataset desnz`; the server does by default):
@@ -314,6 +322,9 @@ Later files override earlier ones by `factor_id`.
   imported unmodified apart from unit and GWP handling.
   Contains public sector information licensed under the
   [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).
+* **`eea-electricity`**: European Environment Agency, "Greenhouse gas emission intensity of
+  electricity generation in Europe" (published 9 November 2026), country level, 2015–2025.
+  Re-used under the EEA's reuse policy with acknowledgement of the EEA as the source.
 * **`useeio-1.3`**: US EPA Supply Chain GHG Emission Factors v1.3.0 by NAICS-6
   ([DOI 10.23719/1531143](https://doi.org/10.23719/1531143)), US public domain.
 * **`sample`** (always loaded unless `--no-bundled`): a few US EPA factors

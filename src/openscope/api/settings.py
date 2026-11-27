@@ -13,7 +13,7 @@ def _paths(value: str | None) -> list[Path]:
     return [Path(p.strip()) for p in (value or "").split(",") if p.strip()]
 
 
-DEFAULT_DATASETS = ("desnz-2024", "desnz-2025", "desnz-2026", "useeio-1.3")
+DEFAULT_DATASETS = ("desnz-2024", "desnz-2025", "desnz-2026", "useeio-1.3", "eea-electricity")
 
 
 @dataclass

@@ -78,6 +78,30 @@ and use the published total. EPA's "HFCs and PFCs, unspecified" group is publish
 and is kept as a fixed `CO2E` component. Methane is not split into fossil and biogenic, so it is
 treated as fossil under AR6, which is conservative.
 
+### EU electricity: EEA grid intensity (location-based)
+
+`eea-electricity` is the EEA indicator "Greenhouse gas emission intensity of electricity
+generation", country level (`EEA-<year>-<country>`, plus `EU27`). The EEA divides the CO2e
+emissions of all electricity production (main activity producers and autoproducers, with the
+emissions of heat production taken out) by total gross electricity generation, nuclear and
+renewables included. The emissions come from the national GHG inventories, which use AR5 GWPs.
+
+* It is **generation-based**: imports and exports are ignored, and transmission and
+  distribution losses and upstream emissions are excluded (they belong in Scope 3 Category 3).
+  For countries that import much of their electricity this differs from a consumption-based
+  average.
+* Values are published in **whole grams** per kWh, so low-carbon grids are coarse (Sweden's
+  7 g/kWh could be 6.5–7.5).
+* The latest year is an **early estimate**, noted on the factor; the importer marks the latest
+  column as such.
+* There is no fossil / nuclear / renewable split, so for E1-5 the electricity is split by the
+  market-based factor's mix (e.g. the AIB residual mix) or a stated mix.
+* Prefer it to the AIB production mix for location-based Scope 2: it covers CH4 and N2O and
+  autoproducers, and the AIB values are combustion CO2 only.
+
+The importer reads the figure's JSON from the EEA website's content API (URL in
+`importers/eea.py`) and keeps 2015 onwards.
+
 ### EU electricity: AIB European Residual Mixes
 
 `openscope import-aib` reads the AIB results workbook (sheets `CO2`, `Residual Mixes` and

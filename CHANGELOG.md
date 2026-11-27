@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.13.0
+### Added
+- **EU location-based electricity factors** from the EEA indicator "Greenhouse gas emission
+  intensity of electricity generation": `eea-electricity`, 27 Member States and the EU-27
+  average, 2015–2025 (308 factors; 2025 is an EEA early estimate). `EEA-DE` resolves to the
+  activity's year like the DESNZ editions. Loaded by the server by default.
+- `openscope import-eea` to refresh it from the EEA website's content API
+
 ## 0.12.0
 ### Added
 - **DESNZ 2026** conversion factors (revised flat file of 31 July 2026) and **DESNZ 2024**,

@@ -47,8 +47,8 @@
 - ESRS E1-6 / IFRS S2 §29(a) tables, comparatives, intensity, readiness checks, exports
 
 ## Later datasets
-- US EPA GHG Emission Factors Hub (full), US residual mix (Green-e), EEA consumption-based
-  grid factors for the EU
+- US EPA GHG Emission Factors Hub (full), US residual mix (Green-e), consumption-based
+  (import-adjusted) EU grid factors
 
 ## v0.8 — Energy and biogenic CO2 ✅
 - ESRS E1-5 energy consumption and mix; biogenic CO2 outside the scopes
@@ -65,6 +65,9 @@
 
 ## v0.12 — Factor editions ✅
 - DESNZ 2024, 2025 and 2026, matched to each activity's year
+
+## v0.13 — EU grid electricity ✅
+- EEA GHG intensity of electricity generation, 27 Member States and EU-27, 2015–2025
 
 ## Later
 - ESRS XBRL tagging; intensity targets and progress tracking for E1-4; energy content for vehicle-distance factors

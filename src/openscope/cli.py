@@ -173,6 +173,29 @@ def cmd_import_aib(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_import_eea(args: argparse.Namespace) -> int:
+    from openscope.importers import eea
+
+    report = eea.read_json(args.json_file, args.first_year)
+    reg = FactorRegistry(report.factors)
+    reg.to_csv(
+        args.out,
+        header_comment=(
+            f"Imported from {Path(args.json_file).name} by openscope {__version__}.\n"
+            f"Source: European Environment Agency (EEA), {eea.SOURCE_URL}\n"
+            "Re-used under the EEA's reuse policy, acknowledging the EEA as the source.\n"
+            "g CO2e/kWh converted to kg; generation-based grid average (location-based)."
+        ),
+    )
+    print(f"Wrote {len(reg)} factors to {args.out}")
+    print(f"  countries (incl. EU-27):  {report.countries}")
+    print(f"  years:                    {report.years[0]}-{report.years[-1]}")
+    print(f"  early estimate:           {report.estimated_year}")
+    if report.unknown_countries:
+        print(f"  skipped (unknown names):  {', '.join(report.unknown_countries)}")
+    return 0
+
+
 def _spend_factors(reg: FactorRegistry) -> list[EmissionFactor]:
     from openscope import units
 
@@ -457,6 +480,14 @@ def build_parser() -> argparse.ArgumentParser:
     ds.add_argument("--format", default="md", choices=["md", "csv", "json"])
     ds.add_argument("--out", help="Write to a file instead of stdout")
     ds.set_defaults(func=cmd_disclose)
+
+    ee = sub.add_parser(
+        "import-eea", help="Convert the EEA electricity GHG-intensity indicator to factor CSV"
+    )
+    ee.add_argument("json_file", help="Figure JSON from the EEA content API (see the importer)")
+    ee.add_argument("--first-year", type=int, default=2015)
+    ee.add_argument("--out", required=True)
+    ee.set_defaults(func=cmd_import_eea)
 
     a = sub.add_parser("import-aib", help="Convert AIB European Residual Mixes to factor CSV")
     a.add_argument("workbook", help="AIB residual mix results workbook (.xlsx)")
