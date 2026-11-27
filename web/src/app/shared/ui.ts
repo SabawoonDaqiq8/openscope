@@ -170,13 +170,13 @@ export class HowItWorks {
     },
     {
       title: 'Plan',
-      text: 'Abatement levers, a cost curve and science-based targets, with Monte Carlo uncertainty.',
+      text: 'Abatement levers, a cost curve and science-based targets with Monte Carlo uncertainty, ready for ESRS E1-4.',
       link: '/pathways',
       cta: 'Simulate a pathway →',
     },
     {
       title: 'Disclose',
-      text: 'ESRS E1-6 and IFRS S2 emissions tables with readiness checks and exports.',
+      text: 'ESRS E1-6 emissions and E1-5 energy, and IFRS S2, with readiness checks and exports.',
       link: '/disclosure',
       cta: 'Build the disclosure →',
     },

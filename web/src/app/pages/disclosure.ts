@@ -32,7 +32,8 @@ const n1 = new Intl.NumberFormat('en-GB', { minimumFractionDigits: 1, maximumFra
         <div>
           <h1 class="text-xl font-semibold">Climate disclosure</h1>
           <p class="text-sm text-muted">
-            GHG emissions tables for ESRS E1-6 and IFRS S2 §29(a), with readiness checks.
+            ESRS E1-6 emissions and E1-5 energy, or IFRS S2 §29(a), with readiness checks. E1-4
+            targets are on the Pathways page.
           </p>
         </div>
         <div
