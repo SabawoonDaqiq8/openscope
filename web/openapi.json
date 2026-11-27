@@ -971,6 +971,63 @@
         "title": "Lever",
         "type": "object"
       },
+      "LeverContributionOut": {
+        "properties": {
+          "assumptions": {
+            "title": "Assumptions",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "scope12_tco2e": {
+            "title": "Scope12 Tco2E",
+            "type": "number"
+          },
+          "scope3_tco2e": {
+            "title": "Scope3 Tco2E",
+            "type": "number"
+          },
+          "share_of_scope12_reduction": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share Of Scope12 Reduction"
+          },
+          "share_of_scope3_reduction": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share Of Scope3 Reduction"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "scope12_tco2e",
+          "scope3_tco2e",
+          "share_of_scope12_reduction",
+          "share_of_scope3_reduction",
+          "assumptions"
+        ],
+        "title": "LeverContributionOut",
+        "type": "object"
+      },
       "LeverSelector": {
         "description": "Which inventory lines a lever acts on (all given conditions must match).",
         "properties": {
@@ -1290,6 +1347,16 @@
       },
       "PathwayLeverOut": {
         "properties": {
+          "abatement_by_target_year_scope12_tco2e": {
+            "default": 0.0,
+            "title": "Abatement By Target Year Scope12 Tco2E",
+            "type": "number"
+          },
+          "abatement_by_target_year_scope3_tco2e": {
+            "default": 0.0,
+            "title": "Abatement By Target Year Scope3 Tco2E",
+            "type": "number"
+          },
           "abatement_by_target_year_tco2e": {
             "title": "Abatement By Target Year Tco2E",
             "type": "number"
@@ -1365,6 +1432,16 @@
             "title": "Currency",
             "type": "string"
           },
+          "e1_4": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TargetsOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "levers": {
             "items": {
               "$ref": "#/components/schemas/PathwayLeverOut"
@@ -1400,6 +1477,22 @@
             "title": "Pathway",
             "type": "array"
           },
+          "pathway_scope12": {
+            "default": [],
+            "items": {
+              "type": "number"
+            },
+            "title": "Pathway Scope12",
+            "type": "array"
+          },
+          "pathway_scope3": {
+            "default": [],
+            "items": {
+              "type": "number"
+            },
+            "title": "Pathway Scope3",
+            "type": "array"
+          },
           "probability_meets_target": {
             "title": "Probability Meets Target",
             "type": "number"
@@ -1415,6 +1508,22 @@
               "type": "number"
             },
             "title": "Target",
+            "type": "array"
+          },
+          "target_scope12": {
+            "default": [],
+            "items": {
+              "type": "number"
+            },
+            "title": "Target Scope12",
+            "type": "array"
+          },
+          "target_scope3": {
+            "default": [],
+            "items": {
+              "type": "number"
+            },
+            "title": "Target Scope3",
             "type": "array"
           },
           "target_year_gap_tco2e": {
@@ -1778,6 +1887,216 @@
         "title": "Scenario",
         "type": "object"
       },
+      "TargetMilestoneOut": {
+        "properties": {
+          "expected_tco2e": {
+            "title": "Expected Tco2E",
+            "type": "number"
+          },
+          "gap_tco2e": {
+            "title": "Gap Tco2E",
+            "type": "number"
+          },
+          "reduction_vs_base": {
+            "title": "Reduction Vs Base",
+            "type": "number"
+          },
+          "target_tco2e": {
+            "title": "Target Tco2E",
+            "type": "number"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "target_tco2e",
+          "reduction_vs_base",
+          "expected_tco2e",
+          "gap_tco2e"
+        ],
+        "title": "TargetMilestoneOut",
+        "type": "object"
+      },
+      "TargetOut": {
+        "properties": {
+          "ambition": {
+            "title": "Ambition",
+            "type": "string"
+          },
+          "annual_rate": {
+            "title": "Annual Rate",
+            "type": "number"
+          },
+          "base_tco2e": {
+            "title": "Base Tco2E",
+            "type": "number"
+          },
+          "base_year": {
+            "title": "Base Year",
+            "type": "integer"
+          },
+          "bau_tco2e": {
+            "title": "Bau Tco2E",
+            "type": "number"
+          },
+          "boundary": {
+            "title": "Boundary",
+            "type": "string"
+          },
+          "key": {
+            "enum": [
+              "scope12",
+              "scope3"
+            ],
+            "title": "Key",
+            "type": "string"
+          },
+          "milestones": {
+            "items": {
+              "$ref": "#/components/schemas/TargetMilestoneOut"
+            },
+            "title": "Milestones",
+            "type": "array"
+          },
+          "planned_reduction_tco2e": {
+            "title": "Planned Reduction Tco2E",
+            "type": "number"
+          },
+          "probability_meets_target": {
+            "title": "Probability Meets Target",
+            "type": "number"
+          },
+          "required_reduction_tco2e": {
+            "title": "Required Reduction Tco2E",
+            "type": "number"
+          },
+          "scope_shares": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Scope Shares",
+            "type": "object"
+          },
+          "scopes": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Scopes",
+            "type": "array"
+          },
+          "target_year": {
+            "title": "Target Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "boundary",
+          "scopes",
+          "base_year",
+          "base_tco2e",
+          "scope_shares",
+          "annual_rate",
+          "target_year",
+          "milestones",
+          "probability_meets_target",
+          "bau_tco2e",
+          "required_reduction_tco2e",
+          "planned_reduction_tco2e",
+          "ambition"
+        ],
+        "title": "TargetOut",
+        "type": "object"
+      },
+      "TargetsOut": {
+        "description": "ESRS E1-4 GHG emission reduction targets derived from the scenario.",
+        "properties": {
+          "base_year": {
+            "title": "Base Year",
+            "type": "integer"
+          },
+          "basis": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Basis",
+            "type": "array"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/DisclosureCheckOut"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "gases": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Gases",
+            "type": "array"
+          },
+          "levers": {
+            "items": {
+              "$ref": "#/components/schemas/LeverContributionOut"
+            },
+            "title": "Levers",
+            "type": "array"
+          },
+          "reporting_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reporting Year"
+          },
+          "scenario": {
+            "title": "Scenario",
+            "type": "string"
+          },
+          "scope2_basis": {
+            "title": "Scope2 Basis",
+            "type": "string"
+          },
+          "target_year": {
+            "title": "Target Year",
+            "type": "integer"
+          },
+          "targets": {
+            "items": {
+              "$ref": "#/components/schemas/TargetOut"
+            },
+            "title": "Targets",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "scenario",
+          "reporting_year",
+          "base_year",
+          "target_year",
+          "scope2_basis",
+          "gases",
+          "targets",
+          "levers",
+          "checks",
+          "basis"
+        ],
+        "title": "TargetsOut",
+        "type": "object"
+      },
       "Totals": {
         "properties": {
           "data_quality_score": {
@@ -1894,7 +2213,7 @@
   "info": {
     "description": "Open-source, auditable carbon accounting: GHG Protocol Scope 1, 2 and 3.",
     "title": "openscope API",
-    "version": "0.10.0"
+    "version": "0.11.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -3022,6 +3341,72 @@
           }
         },
         "summary": "Inventory Pathway",
+        "tags": [
+          "pathways"
+        ]
+      }
+    },
+    "/api/inventories/{inventory_id}/pathway/e1-4": {
+      "post": {
+        "description": "ESRS E1-4 GHG emission reduction targets for the scenario, as a file.",
+        "operationId": "export_targets_api_inventories__inventory_id__pathway_e1_4_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "inventory_id",
+            "required": true,
+            "schema": {
+              "title": "Inventory Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "required": false,
+            "schema": {
+              "default": "md",
+              "enum": [
+                "csv",
+                "md",
+                "json"
+              ],
+              "title": "Format",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Scenario"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Targets",
         "tags": [
           "pathways"
         ]

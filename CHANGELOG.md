@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.11.0
+### Added
+- **ESRS E1-4 GHG emission reduction targets** from pathway scenarios (`openscope.targets`):
+  base year and value, target values for 2030 and every 5 years after, reduction against the
+  base year, scope shares of the combined Scope 1+2 target, gases covered, comparison with the
+  SBTi near-term minimum rates, and lever contributions by boundary (§34(a)-(f))
+- Readiness checks: missing 2030 value, base year mismatch, near-term horizon, ambition below
+  the SBTi minimum, missing Scope 3 target, shortfall against the target, illustrative levers
+- Pathway page: E1-4 panel with Markdown, CSV and JSON downloads; `PathwayOut.e1_4`;
+  `POST /api/inventories/{id}/pathway/e1-4?format=`; CLI `openscope pathway --e1-4 md|csv|json`
+- Pathway results carry per-boundary trajectories and lever contributions
+
+### Fixed
+- `openscope pathway` gave levers the descriptions of derived Category 3 lines, so a lever
+  selecting "natural gas" also reaches the gas well-to-tank line, as it does in the dashboard
+
 ## 0.10.0
 ### Added
 - **Scope 3 Category 3 derived from Scope 1 and 2**: well-to-tank emissions of fuels,

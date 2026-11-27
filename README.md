@@ -70,6 +70,21 @@ openscope pathway examples/uk_demo_activities.csv --scenario examples/pathway_de
 The demo scenario's costs and reductions are **illustrative assumptions** and are flagged in the
 UI.
 
+**ESRS E1-4 targets.** The scenario's target becomes the E1-4 GHG emission reduction target
+disclosure: base year and value, target values for 2030 and every 5 years after, the reduction
+against the base year, the share of each scope in the combined Scope 1+2 target, the gases
+covered, how the rate compares with the SBTi near-term minimum, and each lever's contribution
+in tCO2e and as a share of the planned reduction. Readiness checks flag a missing 2030 value,
+rates below the SBTi minimum, a plan that falls short, and illustrative levers. It is shown on
+the pathway page and exported as Markdown, CSV or JSON:
+
+![ESRS E1-4 targets](docs/images/dashboard-e1-4.png)
+
+```bash
+openscope pathway examples/uk_demo_activities.csv --scenario examples/pathway_demo_scenario.json \
+    --dataset desnz-2025 --gwp AR5 --derive-cat3 --year 2025 --e1-4 md --out e1-4.md
+```
+
 ### Climate disclosure (ESRS E1-6 · IFRS S2)
 
 ![Disclosure](docs/images/dashboard-disclosure.png)

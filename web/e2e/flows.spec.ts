@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures';
+import { axeViolations, expect, test } from './fixtures';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -99,8 +99,21 @@ test('pathways: demo scenario, Scope 3 shortfall, edit a lever and re-run', asyn
   const scope3 = page.locator('.card', { hasText: 'Scope 3 target' });
   await expect(scope3).toContainText('Short by 46.4 t');
   await expect(page.locator('.card', { hasText: 'Scope 1+2 target' })).toContainText('On track');
+
+  // ESRS E1-4 targets from the same scenario, with its readiness checks and a download
+  const e14 = page.getByRole('region', { name: 'ESRS E1-4 GHG emission reduction targets' });
+  await expect(e14).toContainText('meets the SBTi near-term minimum linear rate for 1.5 °C');
+  await expect(e14.getByRole('row', { name: /^Scope 3 334\.6 2030/ })).toBeVisible();
+  await expect(e14).toContainText('All 6 levers have illustrative assumptions');
+  const download = page.waitForEvent('download');
+  await e14.getByRole('button', { name: 'Markdown' }).click();
+  expect((await download).suggestedFilename()).toBe('openscope-esrs-e1-4-2025-2035.md');
+  expect(await axeViolations(page)).toEqual([]);
+  // the MACC table lists levers in merit order (the E1-4 table repeats them below)
   await expect(
-    page.getByRole('cell', { name: 'Travel policy: rail over short-haul, fewer long-haul trips' }),
+    page
+      .getByRole('cell', { name: 'Travel policy: rail over short-haul, fewer long-haul trips' })
+      .first(),
   ).toBeVisible();
 
   const freight = page.locator('details', { hasText: 'Engage hauliers on low-carbon freight' });

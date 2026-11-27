@@ -19,6 +19,7 @@ import { macc, trajectory } from '../charts/options';
 import { percent, tco2e } from '../core/format';
 import { ThemeService } from '../core/theme.service';
 import { ChartCard, EmptyState, Notice, StatTile } from '../shared/ui';
+import { TargetsFormat, TargetsPanel } from './targets-panel';
 
 echarts.use([
   LineChart,
@@ -75,7 +76,7 @@ const list = (v: string): number[] | null => {
 
 @Component({
   selector: 'os-pathways',
-  imports: [RouterLink, NgxEchartsDirective, ChartCard, EmptyState, Notice, StatTile],
+  imports: [RouterLink, NgxEchartsDirective, ChartCard, EmptyState, Notice, StatTile, TargetsPanel],
   providers: [provideEchartsCore({ echarts })],
   template: `
     @if (loaded() && inventories().length === 0) {
@@ -482,6 +483,10 @@ const list = (v: string): number[] | null => {
                 </tbody>
               </table>
             </section>
+
+            @if (r.e1_4; as e) {
+              <os-targets-panel [data]="e" (download)="downloadTargets($event)" />
+            }
           } @else {
             <div class="card p-10 text-center text-sm text-muted">
               Set up the scenario and press <b>Run simulation</b>.
@@ -659,6 +664,24 @@ export class PathwaysPage {
         this.scenario.set(sc);
         this.save(sc);
         this.runPathway();
+      },
+      error: (e) => this.error.set(errorMessage(e)),
+    });
+  }
+
+  /** Download the E1-4 disclosure for the current scenario (POST, so fetched as a blob). */
+  protected downloadTargets(format: TargetsFormat): void {
+    const id = this.inventoryId();
+    const sc = this.scenario();
+    if (id === null || !sc) return;
+    this.api.targetsFile(id, sc, format).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `openscope-esrs-e1-4-${sc.base_year}-${sc.target_year}.${format}`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 0);
       },
       error: (e) => this.error.set(errorMessage(e)),
     });

@@ -24,6 +24,7 @@ from openscope import (
     Scope3Category,
     __version__,
     disclosure,
+    targets,
     units,
 )
 from openscope import classify as cl
@@ -35,7 +36,7 @@ from openscope.engine import BatchResult
 from openscope.errors import OpenScopeError
 from openscope.io import read_activities
 from openscope.models import EmissionResult
-from openscope.pathway import Scenario
+from openscope.pathway import PathwayResult, Scenario
 from openscope.pathway import run as run_pathway
 
 
@@ -557,10 +558,22 @@ class Service:
 
     # -- pathways --------------------------------------------------------------------------------
     def pathway(self, row: db.Inventory, scenario: Scenario) -> schemas.PathwayOut:
+        inventory, result = self._run_pathway(row, scenario)
+        out = schemas.PathwayOut.model_validate(dataclasses.asdict(result))
+        e1_4 = targets.build(inventory, scenario, result, row.reporting_year)
+        out.e1_4 = schemas.TargetsOut.model_validate(e1_4.as_dict())
+        return out
+
+    def targets(self, row: db.Inventory, scenario: Scenario) -> targets.TargetDisclosure:
+        inventory, result = self._run_pathway(row, scenario)
+        return targets.build(inventory, scenario, result, row.reporting_year)
+
+    @staticmethod
+    def _run_pathway(row: db.Inventory, scenario: Scenario) -> tuple[Inventory, PathwayResult]:
         results = [EmissionResult.model_validate(r.result) for r in row.lines]
         descriptions = {r.activity_id: r.activity.get("description") or "" for r in row.lines}
-        result = run_pathway(Inventory(results), scenario, descriptions)
-        return schemas.PathwayOut.model_validate(dataclasses.asdict(result))
+        inventory = Inventory(results)
+        return inventory, run_pathway(inventory, scenario, descriptions)
 
     def demo_scenario(self) -> Scenario:
         path = self._demo_file("pathway_demo_scenario.json")

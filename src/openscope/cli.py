@@ -215,7 +215,21 @@ def cmd_pathway(args: argparse.Namespace) -> int:
     batch = calc.calculate_many(acts)
     with open(args.scenario, encoding="utf-8") as fh:
         scenario = Scenario.model_validate_json(fh.read())
-    result = run(Inventory(batch.results), scenario, {a.activity_id: a.description for a in acts})
+    descriptions = {k: a.description for k, a in batch.activities(acts).items()}
+    inventory = Inventory(batch.results)
+    result = run(inventory, scenario, descriptions)
+    if args.e1_4:
+        from openscope import targets
+
+        d = targets.build(inventory, scenario, result, args.year)
+        render = {"md": targets.to_markdown, "csv": targets.to_csv, "json": targets.to_json}
+        text = render[args.e1_4](d)
+        if args.out:
+            Path(args.out).write_text(text, encoding="utf-8")
+            print(f"Wrote ESRS E1-4 targets to {args.out}")
+        else:
+            print(text)
+        return 0
     if args.json:
         print(dumps_json(dataclasses.asdict(result)))
         return 0
@@ -410,6 +424,14 @@ def build_parser() -> argparse.ArgumentParser:
     pw.add_argument("--scenario", required=True, help="Scenario JSON (see examples/)")
     pw.add_argument("--gwp", default="AR6", choices=["AR5", "AR6"])
     pw.add_argument("--json", action="store_true")
+    pw.add_argument(
+        "--e1-4",
+        dest="e1_4",
+        choices=["md", "csv", "json"],
+        help="Write the ESRS E1-4 targets disclosure for the scenario in this format",
+    )
+    pw.add_argument("--year", type=int, help="Reporting year of the inventory (for E1-4 checks)")
+    pw.add_argument("--out", help="Write the E1-4 disclosure to a file")
     pw.set_defaults(func=cmd_pathway)
 
     ds = sub.add_parser(

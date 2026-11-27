@@ -146,6 +146,17 @@ export class ApiService {
     return this.http.post<PathwayOut>(`${this.base}/inventories/${inventoryId}/pathway`, scenario);
   }
 
+  targetsFile(
+    inventoryId: number,
+    scenario: Scenario,
+    format: 'md' | 'csv' | 'json',
+  ): Observable<Blob> {
+    return this.http.post(`${this.base}/inventories/${inventoryId}/pathway/e1-4`, scenario, {
+      params: params({ format }),
+      responseType: 'blob',
+    });
+  }
+
   demoScenario(): Observable<Scenario> {
     return this.http.get<Scenario>(`${this.base}/pathway/demo-scenario`);
   }

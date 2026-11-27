@@ -25,7 +25,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from openscope import __version__, disclosure
+from openscope import __version__, disclosure, targets
 from openscope.api import db, schemas
 from openscope.api.protection import SecurityHeadersMiddleware, WriteRateLimitMiddleware
 from openscope.api.service import NotFound, Service
@@ -250,6 +250,27 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         inventory_id: int, scenario: Scenario, session: SessionDep
     ) -> schemas.PathwayOut:
         return service.pathway(service.get_inventory(session, inventory_id), scenario)
+
+    @api.post("/inventories/{inventory_id}/pathway/e1-4", tags=["pathways"])
+    def export_targets(
+        inventory_id: int,
+        scenario: Scenario,
+        session: SessionDep,
+        format: Literal["csv", "md", "json"] = "md",
+    ) -> Response:
+        """ESRS E1-4 GHG emission reduction targets for the scenario, as a file."""
+        d = service.targets(service.get_inventory(session, inventory_id), scenario)
+        body, media = {
+            "csv": (targets.to_csv, "text/csv"),
+            "md": (targets.to_markdown, "text/markdown"),
+            "json": (targets.to_json, "application/json"),
+        }[format]
+        name = f"openscope-esrs-e1-4-{d.base_year}-{d.target_year}.{format}"
+        return Response(
+            body(d),
+            media_type=f"{media}; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{name}"'},
+        )
 
     @api.get("/pathway/demo-scenario", tags=["pathways"])
     def demo_scenario() -> Scenario:

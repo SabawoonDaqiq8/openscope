@@ -211,6 +211,8 @@ class PathwayLeverOut(BaseModel):
     mac: float | None
     merit_rank: int
     abatement_by_target_year_tco2e: float
+    abatement_by_target_year_scope12_tco2e: float = 0.0
+    abatement_by_target_year_scope3_tco2e: float = 0.0
 
 
 class PathwayGroupOut(BaseModel):
@@ -219,6 +221,57 @@ class PathwayGroupOut(BaseModel):
     pathway_tco2e: float
     gap_tco2e: float
     probability_meets_target: float
+
+
+class TargetMilestoneOut(BaseModel):
+    year: int
+    target_tco2e: float
+    reduction_vs_base: float
+    expected_tco2e: float
+    gap_tco2e: float
+
+
+class TargetOut(BaseModel):
+    key: Literal["scope12", "scope3"]
+    boundary: str
+    scopes: list[int]
+    base_year: int
+    base_tco2e: float
+    scope_shares: dict[str, float]
+    annual_rate: float
+    target_year: int
+    milestones: list[TargetMilestoneOut]
+    probability_meets_target: float
+    bau_tco2e: float
+    required_reduction_tco2e: float
+    planned_reduction_tco2e: float
+    ambition: str
+
+
+class LeverContributionOut(BaseModel):
+    id: str
+    name: str
+    scope12_tco2e: float
+    scope3_tco2e: float
+    share_of_scope12_reduction: float | None
+    share_of_scope3_reduction: float | None
+    assumptions: str
+
+
+class TargetsOut(BaseModel):
+    """ESRS E1-4 GHG emission reduction targets derived from the scenario."""
+
+    title: str
+    scenario: str
+    reporting_year: int | None
+    base_year: int
+    target_year: int
+    scope2_basis: str
+    gases: list[str]
+    targets: list[TargetOut]
+    levers: list[LeverContributionOut]
+    checks: list[DisclosureCheckOut]
+    basis: list[str]
 
 
 class PathwayOut(BaseModel):
@@ -237,6 +290,11 @@ class PathwayOut(BaseModel):
     scope12: PathwayGroupOut
     scope3: PathwayGroupOut
     currency: str
+    pathway_scope12: list[float] = []
+    pathway_scope3: list[float] = []
+    target_scope12: list[float] = []
+    target_scope3: list[float] = []
+    e1_4: TargetsOut | None = None
 
 
 class DisclosureRowOut(BaseModel):

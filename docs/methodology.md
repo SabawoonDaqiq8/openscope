@@ -178,6 +178,36 @@ Limitations: levers are independent multiplicative cuts (no physical coupling, e
 adding Scope 2 must be netted into the reduction); there is no grid decarbonisation path and
 no cost uncertainty yet.
 
+## GHG emission reduction targets (ESRS E1-4)
+
+`openscope.targets` turns a pathway scenario into the E1-4 §34 disclosure. The target is the
+scenario's linear absolute contraction: Scope 1+2 (combined) and Scope 3, each at its own
+annual rate of the base-year value.
+
+* **Values (§34(a), (c), (d))**: the base year and value, and target values for 2030 and every
+  5 years after it up to the target year, in tCO2e and as a reduction against the base year.
+  The base value is the pathway baseline: the inventory's headline results, with Scope 2
+  market-based.
+* **Boundary (§34(b))**: the share of Scope 1 and Scope 2 in the combined target, and the gases
+  in the inventory. Gases inside factors published only as CO2e are named as such.
+* **Ambition (§34(e))**: each rate is compared with the SBTi near-term minimum linear rates
+  (4.2 %/yr for Scope 1+2, aligned with 1.5 °C; 2.5 %/yr for Scope 3, well-below 2 °C). This is
+  an indication only: the disclosure must say whether the target is validated and by whom.
+* **Levers (§34(f))**: each lever's reduction in the target year in the deterministic pathway,
+  in merit order so that overlapping levers never count a tonne twice, split by boundary and
+  shown as a share of the planned reduction. The required reduction is measured against
+  business-as-usual emissions in the target year, so growth is accounted for.
+* **Gross targets**: levers only reduce inventory emissions; removals, carbon credits and
+  avoided emissions are outside the model.
+* **Readiness checks**: no 2030 value (warning); base year different from the inventory's
+  reporting year (warning); a horizon outside SBTi's 5 to 10 years for near-term targets (info);
+  a rate below the SBTi minimum (warning); no Scope 3 target when Scope 3 is 40 % or more of
+  the total (warning); planned levers falling short of a target (warning); levers with
+  illustrative assumptions (blocker).
+
+Not covered: intensity targets, targets set outside the pathway model, base-year
+recalculation, and progress tracking against earlier targets.
+
 ## Disclosure tables
 
 `openscope.disclosure` maps inventory metrics onto ESRS E1-6 and IFRS S2 §29(a):
@@ -195,7 +225,7 @@ no cost uncertainty yet.
 Readiness levels: **blocker** (illustrative factors, calculation errors), **warning** (non-AR6
 GWPs, Scope 2 market-based fallback, missing net revenue), **info** (unreported Scope 3
 categories, missing comparatives or ETS share, biogenic CO2 not calculated, a high spend-based
-share). Not covered: E1-4 targets, E1-7 removals and credits, consolidation scope
+share). Not covered: E1-7 removals and credits, consolidation scope
 (§50), and XBRL tagging.
 
 ## Energy consumption and mix (ESRS E1-5)

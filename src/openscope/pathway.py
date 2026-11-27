@@ -28,7 +28,7 @@ from __future__ import annotations
 import math
 import random
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -138,6 +138,8 @@ class LeverResult:
     mac: float | None  # currency per tCO2e
     merit_rank: int
     abatement_by_target_year_tco2e: float  # in the target year, deterministic pathway
+    abatement_by_target_year_scope12_tco2e: float = 0.0
+    abatement_by_target_year_scope3_tco2e: float = 0.0
 
 
 @dataclass
@@ -168,6 +170,11 @@ class PathwayResult:
     scope12: GroupResult
     scope3: GroupResult
     currency: str
+    # deterministic pathway and target per boundary, by year
+    pathway_scope12: list[float] = field(default_factory=list)
+    pathway_scope3: list[float] = field(default_factory=list)
+    target_scope12: list[float] = field(default_factory=list)
+    target_scope3: list[float] = field(default_factory=list)
 
 
 def capital_recovery_factor(rate: float, years: int) -> float:
@@ -298,12 +305,16 @@ def run(
     # marginal contribution of each lever in the target year (in merit order)
     horizon = n - 1
     applied = [0.0] * len(levers)
-    previous = bau[-1]
+    previous = _split(lines, levers, applied, growth, horizon, scenario.base_year)
     for i, lv in enumerate(levers):
         applied[i] = lv.reduction
-        now = _emissions(lines, levers, applied, growth, horizon, scenario.base_year)
-        lever_results[i].abatement_by_target_year_tco2e = previous - now
+        now = _split(lines, levers, applied, growth, horizon, scenario.base_year)
+        lr = lever_results[i]
+        lr.abatement_by_target_year_scope12_tco2e = previous[0] - now[0]
+        lr.abatement_by_target_year_scope3_tco2e = previous[1] - now[1]
+        lr.abatement_by_target_year_tco2e = sum(previous) - sum(now)
         previous = now
+    split_path = [_split(lines, levers, modes, growth, t, scenario.base_year) for t in range(n)]
 
     base12 = sum(ln.base_t for ln in lines if ln.scope in (1, 2))
     base3 = sum(ln.base_t for ln in lines if ln.scope == 3)
@@ -355,4 +366,8 @@ def run(
         scope12=group(base12, t12[-1], det12, 0),
         scope3=group(base3, t3[-1], det3, 1),
         currency=scenario.currency,
+        pathway_scope12=[s[0] for s in split_path],
+        pathway_scope3=[s[1] for s in split_path],
+        target_scope12=t12,
+        target_scope3=t3,
     )

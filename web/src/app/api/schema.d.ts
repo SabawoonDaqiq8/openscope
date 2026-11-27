@@ -262,6 +262,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/inventories/{inventory_id}/pathway/e1-4": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Export Targets
+         * @description ESRS E1-4 GHG emission reduction targets for the scenario, as a file.
+         */
+        post: operations["export_targets_api_inventories__inventory_id__pathway_e1_4_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/meta": {
         parameters: {
             query?: never;
@@ -645,6 +665,23 @@ export interface components {
             /** Start Year */
             start_year: number;
         };
+        /** LeverContributionOut */
+        LeverContributionOut: {
+            /** Assumptions */
+            assumptions: string;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Scope12 Tco2E */
+            scope12_tco2e: number;
+            /** Scope3 Tco2E */
+            scope3_tco2e: number;
+            /** Share Of Scope12 Reduction */
+            share_of_scope12_reduction: number | null;
+            /** Share Of Scope3 Reduction */
+            share_of_scope3_reduction: number | null;
+        };
         /**
          * LeverSelector
          * @description Which inventory lines a lever acts on (all given conditions must match).
@@ -747,6 +784,16 @@ export interface components {
         };
         /** PathwayLeverOut */
         PathwayLeverOut: {
+            /**
+             * Abatement By Target Year Scope12 Tco2E
+             * @default 0
+             */
+            abatement_by_target_year_scope12_tco2e: number;
+            /**
+             * Abatement By Target Year Scope3 Tco2E
+             * @default 0
+             */
+            abatement_by_target_year_scope3_tco2e: number;
             /** Abatement By Target Year Tco2E */
             abatement_by_target_year_tco2e: number;
             /** Abatement Tco2E */
@@ -774,6 +821,7 @@ export interface components {
             bau: number[];
             /** Currency */
             currency: string;
+            e1_4?: components["schemas"]["TargetsOut"] | null;
             /** Levers */
             levers: components["schemas"]["PathwayLeverOut"][];
             /** P10 */
@@ -784,12 +832,32 @@ export interface components {
             p90: number[];
             /** Pathway */
             pathway: number[];
+            /**
+             * Pathway Scope12
+             * @default []
+             */
+            pathway_scope12: number[];
+            /**
+             * Pathway Scope3
+             * @default []
+             */
+            pathway_scope3: number[];
             /** Probability Meets Target */
             probability_meets_target: number;
             scope12: components["schemas"]["PathwayGroupOut"];
             scope3: components["schemas"]["PathwayGroupOut"];
             /** Target */
             target: number[];
+            /**
+             * Target Scope12
+             * @default []
+             */
+            target_scope12: number[];
+            /**
+             * Target Scope3
+             * @default []
+             */
+            target_scope3: number[];
             /** Target Year Gap Tco2E */
             target_year_gap_tco2e: number;
             /** Target Year Tco2E */
@@ -943,6 +1011,83 @@ export interface components {
             target_rate_scope3: number;
             /** Target Year */
             target_year: number;
+        };
+        /** TargetMilestoneOut */
+        TargetMilestoneOut: {
+            /** Expected Tco2E */
+            expected_tco2e: number;
+            /** Gap Tco2E */
+            gap_tco2e: number;
+            /** Reduction Vs Base */
+            reduction_vs_base: number;
+            /** Target Tco2E */
+            target_tco2e: number;
+            /** Year */
+            year: number;
+        };
+        /** TargetOut */
+        TargetOut: {
+            /** Ambition */
+            ambition: string;
+            /** Annual Rate */
+            annual_rate: number;
+            /** Base Tco2E */
+            base_tco2e: number;
+            /** Base Year */
+            base_year: number;
+            /** Bau Tco2E */
+            bau_tco2e: number;
+            /** Boundary */
+            boundary: string;
+            /**
+             * Key
+             * @enum {string}
+             */
+            key: "scope12" | "scope3";
+            /** Milestones */
+            milestones: components["schemas"]["TargetMilestoneOut"][];
+            /** Planned Reduction Tco2E */
+            planned_reduction_tco2e: number;
+            /** Probability Meets Target */
+            probability_meets_target: number;
+            /** Required Reduction Tco2E */
+            required_reduction_tco2e: number;
+            /** Scope Shares */
+            scope_shares: {
+                [key: string]: number;
+            };
+            /** Scopes */
+            scopes: number[];
+            /** Target Year */
+            target_year: number;
+        };
+        /**
+         * TargetsOut
+         * @description ESRS E1-4 GHG emission reduction targets derived from the scenario.
+         */
+        TargetsOut: {
+            /** Base Year */
+            base_year: number;
+            /** Basis */
+            basis: string[];
+            /** Checks */
+            checks: components["schemas"]["DisclosureCheckOut"][];
+            /** Gases */
+            gases: string[];
+            /** Levers */
+            levers: components["schemas"]["LeverContributionOut"][];
+            /** Reporting Year */
+            reporting_year: number | null;
+            /** Scenario */
+            scenario: string;
+            /** Scope2 Basis */
+            scope2_basis: string;
+            /** Target Year */
+            target_year: number;
+            /** Targets */
+            targets: components["schemas"]["TargetOut"][];
+            /** Title */
+            title: string;
         };
         /** Totals */
         Totals: {
@@ -1536,6 +1681,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PathwayOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_targets_api_inventories__inventory_id__pathway_e1_4_post: {
+        parameters: {
+            query?: {
+                format?: "csv" | "md" | "json";
+            };
+            header?: never;
+            path: {
+                inventory_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Scenario"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
